@@ -1,8 +1,11 @@
 package com.example.kc.thetana;
 
+import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -26,22 +29,22 @@ public class FriendExpandableAdapter extends BaseExpandableListAdapter {
     }
     @Override
     public int getGroupCount() {
-        return 0;
+        return group.size();
     }
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        return 0;
+        return group.get(groupPosition).friendChildren.size();
     }
 
     @Override
     public Object getGroup(int groupPosition) {
-        return null;
+        return group.get(groupPosition);
     }
 
     @Override
     public Object getChild(int groupPosition, int childPosition) {
-        return null;
+        return group.get(groupPosition).friendChildren.get(childPosition);
     }
 
     @Override
@@ -51,26 +54,41 @@ public class FriendExpandableAdapter extends BaseExpandableListAdapter {
 
     @Override
     public long getChildId(int groupPosition, int childPosition) {
-        return 0;
+        return childPosition;
     }
 
     @Override
     public boolean hasStableIds() {
-        return false;
+        return true;
     }
 
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+        TextView tv_name = null;
+        LayoutInflater inflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        convertView = inflater.inflate(R.layout.item_group, parent, false);
+        tv_name = (TextView) convertView.findViewById(R.id.group_tv_name);
+        tv_name.setText(group.get(groupPosition).groupName);
         return convertView;
     }
 
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
+        TextView tv_name = null;
+        TextView tv_state = null;
+        LayoutInflater inflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        convertView = inflater.inflate(R.layout.item_child, parent, false);
+
+        tv_name = (TextView) convertView.findViewById(R.id.child_tv_name);
+        tv_state = (TextView) convertView.findViewById(R.id.child_tv_state);
+        tv_name.setText(group.get(groupPosition).friendChildren.get(childPosition).name);
+        tv_state.setText(group.get(groupPosition).friendChildren.get(childPosition).state);
+
         return convertView;
     }
 
     @Override
     public boolean isChildSelectable(int groupPosition, int childPosition) {
-        return false;
+        return true;
     }
 }

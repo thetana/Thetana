@@ -29,7 +29,6 @@ import android.widget.TextView;
  */
 
 public class MenuActivity extends AppCompatActivity {
-
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -65,27 +64,27 @@ public class MenuActivity extends AppCompatActivity {
     }
 
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        // Handle action bar item clicks here. The action bar will
-//        // automatically handle clicks on the Home/Up button, so long
-//        // as you specify a parent activity in AndroidManifest.xml.
-//        int id = item.getItemId();
-//
-//        //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_settings) {
-//            return true;
-//        }
-//
-//        return super.onOptionsItemSelected(item);
-//    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 
     /**
      * A placeholder fragment containing a simple view.
@@ -100,6 +99,8 @@ public class MenuActivity extends AppCompatActivity {
         FriendExpandableAdapter friendExpandableAdapter = new FriendExpandableAdapter();
         Button bt_logout;
         SharedPreferences preferences;
+        GlobalClass globalClass;
+
         public PlaceholderFragment() {
         }
 
@@ -128,10 +129,37 @@ public class MenuActivity extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_friend, container, false);
 
             if(getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
+                globalClass = new GlobalClass(container.getContext());
                 rootView = inflater.inflate(R.layout.fragment_friend, container, false);
                 FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
                 elv = (ExpandableListView) rootView.findViewById(R.id.elv);
                 elv.setAdapter(friendExpandableAdapter);
+                friendExpandableAdapter.setGroup(globalClass.getFriends());
+
+                for(int i = 0; i < friendExpandableAdapter.getGroupCount(); i++){
+                    elv.expandGroup(i);
+                }
+
+                elv.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+                    @Override
+                    public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+                        FriendChild friendChild = (FriendChild)friendExpandableAdapter.getChild(groupPosition,childPosition);
+                        Intent intent = new Intent(container.getContext(), ProfileActivity.class);
+
+                        intent.putExtra("gubun", "");
+                        if(groupPosition == 0) intent.putExtra("gubun", "me");
+
+                        intent.putExtra("name", friendChild.name);
+                        intent.putExtra("state", friendChild.state);
+
+                        startActivity(intent);
+                        return false;
+                    }
+                });
+
+
+
+
 
                 fab.setOnClickListener(new View.OnClickListener() {
                     @Override

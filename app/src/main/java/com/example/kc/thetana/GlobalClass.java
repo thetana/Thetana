@@ -4,7 +4,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -12,6 +15,7 @@ import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.security.PrivateKey;
 import java.util.ArrayList;
 
 /**
@@ -19,9 +23,9 @@ import java.util.ArrayList;
  */
 
 public class GlobalClass {
-    ArrayList<FriendGroup> friendGroup = new ArrayList<FriendGroup>();
-    Context context;
-    SharedPreferences preferences;
+    private ArrayList<FriendGroup> friendGroup = new ArrayList<FriendGroup>();
+    private Context context;
+    private SharedPreferences preferences;
 
     GlobalClass(Context context) {
         this.context = context;
@@ -33,14 +37,41 @@ public class GlobalClass {
     }
 
     public ArrayList<FriendGroup> getFriends() {
+        JSONArray jsonArray = null;
+
         friendGroup.add(new FriendGroup("프로필"));
         friendGroup.add(new FriendGroup("즐겨찾기"));
         friendGroup.add(new FriendGroup("친구"));
 
         preferences = context.getSharedPreferences("user", 0);
-        getData(preferences.getString("friend", ""));
 
+        friendGroup.get(0).friendChildren.add(new FriendChild());
+        friendGroup.get(0).friendChildren.get(0).id = preferences.getString("id", "");
+        friendGroup.get(0).friendChildren.get(0).name = preferences.getString("name", "");
+        friendGroup.get(0).friendChildren.get(0).state = preferences.getString("stateMessage", "");
 
+        try {
+            JSONObject jsonObj = new JSONObject(preferences.getString("friend", ""));
+            jsonArray = jsonObj.getJSONArray("friend");
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject c = jsonArray.getJSONObject(i);
+                String friendId = c.getString("friendId");
+                String bookmark = c.getString("bookmark");
+                String userName = c.getString("userName");
+                String stateMessage = c.getString("stateMessage");
+
+                FriendChild friendChild = new FriendChild();
+                friendChild.id = friendId;
+                friendChild.name = userName;
+                friendChild.state = stateMessage;
+
+                friendGroup.get(2).friendChildren.add(friendChild);
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         return friendGroup;
     }

@@ -32,6 +32,7 @@ public class FriendAdapter extends BaseAdapter{
     TextView tv_name;
     Button bt_add;
     SharedPreferences preferences;
+    GlobalClass globalClass;
 
     public void addItem(ArrayList<FriendItem> itme ){
         friendItems = itme;
@@ -101,6 +102,8 @@ public class FriendAdapter extends BaseAdapter{
                 if (s.equals("success")) {
                     friendItems.remove(position);
                     notifyDataSetChanged();
+                    globalClass = new GlobalClass(context);
+                    globalClass.updateFriends();
                 }
                 Toast.makeText(context, s, Toast.LENGTH_LONG).show();
             }
