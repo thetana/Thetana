@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textEmailAddress"
+        android:ems="10"
+        android:id="@+id/join_et_email"
+        android:hint="로그인 할 이메일을 입력해 주세요." />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:ems="10"
+        android:id="@+id/join_et_password"
+        android:hint="비밀번호를 입력해 주세요." />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:ems="10"
+        android:id="@+id/join_et_rePassword"
+        android:hint="비밀번호를 재입력해 주세요." />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textEmailAddress"
+        android:ems="10"
+        android:id="@+id/join_et_id"
+        android:hint="아이디를 입력해 주세요.(친구찾기용)" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:ems="10"
+        android:id="@+id/join_et_name"
+        android:hint="이름을 입력해 주세요." />
+
+    <Button
+        android:text="가입"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/join_bt_join" />
+
+</LinearLayout>
