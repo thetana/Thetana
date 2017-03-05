@@ -34,36 +34,29 @@ public class ChatActivity extends ActionBarActivity {
         setContentView(R.layout.activity_chat);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
-
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        Log.d("onCreateOptionsMenu", "create menu");
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.socket_activity_actions, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        Log.d("onCreateOptionsMenu", "create menu");
+//        MenuInflater inflater = getMenuInflater();
+//        inflater.inflate(R.menu.menu_chat, menu);
+//        return super.onCreateOptionsMenu(menu);
+//    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        switch (item.getItemId()) {
-            case R.id.action_attach:
-                Log.d("onOptionsItemSelected","action_attach");
-                openGallery();
-                return true;
-            case R.id.action_capture:
-                Log.d("onOptionsItemSelected","action_capture");
-                // openSettings();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//
+//
+//        switch (item.getItemId()) {
+//            case R.id.action_settings:
+//                Log.d("onOptionsItemSelected","action_attach");
+//                openGallery();
+//                return true;
+//            default:
+//                return super.onOptionsItemSelected(item);
+//        }
+//    }
 
     private void openGallery()
     {

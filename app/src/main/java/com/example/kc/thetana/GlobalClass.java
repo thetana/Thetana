@@ -15,8 +15,8 @@ import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.security.PrivateKey;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Created by kc on 2017-02-19.
@@ -24,59 +24,97 @@ import java.util.ArrayList;
 
 public class GlobalClass {
     private ArrayList<FriendGroup> friendGroup = new ArrayList<FriendGroup>();
+    private ArrayList<RoomItem> roomItems = new ArrayList<RoomItem>();
     private Context context;
     private SharedPreferences preferences;
+    String myId;
 
     GlobalClass(Context context) {
         this.context = context;
+        preferences = context.getSharedPreferences("user", 0);
+        myId = preferences.getString("id", "");
     }
 
     public void updateFriends() {
         preferences = context.getSharedPreferences("user", 0);
-        getData(preferences.getString("id", ""));
+        getData(myId, "http://192.168.244.128/getMyFriend.php");
     }
 
     public ArrayList<FriendGroup> getFriends() {
-        JSONArray jsonArray = null;
-
         friendGroup.add(new FriendGroup("프로필"));
         friendGroup.add(new FriendGroup("즐겨찾기"));
         friendGroup.add(new FriendGroup("친구"));
 
         preferences = context.getSharedPreferences("user", 0);
-
         friendGroup.get(0).friendChildren.add(new FriendChild());
         friendGroup.get(0).friendChildren.get(0).id = preferences.getString("id", "");
         friendGroup.get(0).friendChildren.get(0).name = preferences.getString("name", "");
         friendGroup.get(0).friendChildren.get(0).state = preferences.getString("stateMessage", "");
 
-        try {
-            JSONObject jsonObj = new JSONObject(preferences.getString("friend", ""));
-            jsonArray = jsonObj.getJSONArray("friend");
-
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject c = jsonArray.getJSONObject(i);
+        preferences = context.getSharedPreferences("friend", 0);
+        Iterator<String> iterator = preferences.getAll().keySet().iterator();
+        while (iterator.hasNext()){
+            try {
+                JSONObject c =  new JSONObject(preferences.getString(iterator.next(), ""));
                 String friendId = c.getString("friendId");
                 String bookmark = c.getString("bookmark");
                 String userName = c.getString("userName");
                 String stateMessage = c.getString("stateMessage");
+                String roomId = c.getString("roomId");
 
                 FriendChild friendChild = new FriendChild();
                 friendChild.id = friendId;
                 friendChild.name = userName;
                 friendChild.state = stateMessage;
+                friendChild.roomId = roomId;
 
                 friendGroup.get(2).friendChildren.add(friendChild);
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
         }
 
         return friendGroup;
     }
 
-    private void getData(String id) {
+    public void updateRooms() {
+        preferences = context.getSharedPreferences("user", 0);
+        getData(myId, "http://192.168.244.128/getRoom.php");
+    }
+
+    public ArrayList<RoomItem> getRooms() {
+
+        preferences = context.getSharedPreferences("room", 0);
+        Iterator<String> iterator = preferences.getAll().keySet().iterator();
+        while (iterator.hasNext()){
+            try {
+                JSONObject jsonObject =  new JSONObject(preferences.getString(iterator.next(), ""));
+                String roomId = jsonObject.getString("roomId");
+                String roomGubun = jsonObject.getString("roomGubun");
+                String roomName = "";
+
+                JSONArray jsonArray = jsonObject.getJSONArray("roomName");
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject c = jsonArray.getJSONObject(i);
+                    roomName = roomName + "," +c.getString("userId");
+                }
+                roomName = roomName.substring(1);
+
+                RoomItem roomItem = new RoomItem();
+                roomItem.id = roomId;
+                roomItem.gubun = roomGubun;
+                roomItem.name = roomName;
+
+                roomItems.add(roomItem);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return roomItems;
+    }
+
+    private void getData(final String id, final String link) {
 
         class InsertData extends AsyncTask<String, Void, String> {
             ProgressDialog loading;
@@ -91,11 +129,45 @@ public class GlobalClass {
             protected void onPostExecute(String s) {
                 super.onPostExecute(s);
                 loading.dismiss();
+                if (link.equals("http://192.168.244.128/getMyFriend.php")) {
+                    try {
+                        preferences = context.getSharedPreferences("friend", 0);
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.clear();
 
-                preferences = context.getSharedPreferences("user", 0);
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putString("friend", s);
-                editor.commit();
+                        JSONObject jsonObj = null;
+                        jsonObj = new JSONObject(s);
+                        JSONArray jsonArray = jsonObj.getJSONArray("friend");
+
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject c = jsonArray.getJSONObject(i);
+                            editor.putString(c.getString("friendId"), c.toString());
+                        }
+
+                        editor.commit();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                } else if (link.equals("http://192.168.244.128/getRoom.php")) {
+                    try {
+                        preferences = context.getSharedPreferences("room", 0);
+                        SharedPreferences.Editor editor = preferences.edit();
+                        editor.clear();
+
+                        JSONObject jsonObj = null;
+                        jsonObj = new JSONObject(s);
+                        JSONArray jsonArray = jsonObj.getJSONArray("room");
+
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject c = jsonArray.getJSONObject(i);
+                            editor.putString(c.getString("roomId"), c.toString());
+                        }
+
+                        editor.commit();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
 
             @Override
@@ -103,8 +175,8 @@ public class GlobalClass {
 
                 try {
                     String id = (String) params[0];
+                    String link = (String) params[1];
 
-                    String link = "http://jh-shin.synology.me/thetana/getMyFriend.php";
                     String data = URLEncoder.encode("userId", "UTF-8") + "=" + URLEncoder.encode(id, "UTF-8");
 
                     URL url = new URL(link);
@@ -133,6 +205,6 @@ public class GlobalClass {
         }
 
         InsertData task = new InsertData();
-        task.execute(id);
+        task.execute(id, link);
     }
 }

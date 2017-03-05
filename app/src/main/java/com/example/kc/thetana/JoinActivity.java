@@ -94,8 +94,7 @@ public class JoinActivity extends AppCompatActivity {
                 super.onPostExecute(s);
                 loading.dismiss();
                 Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
-                String a = "환영합니다.";
-                if (s.substring(1).equals(a)) {
+                if (s.equals("환영합니다.")) {
                     Intent intent = new Intent(JoinActivity.this, LoginActivity.class);
                     startActivity(intent);
                 }
@@ -111,7 +110,7 @@ public class JoinActivity extends AppCompatActivity {
                     String id = (String) params[3];
                     String name = (String) params[4];
 
-                    String link = "http://jh-shin.synology.me/thetana/join.php";
+                    String link = "http://192.168.244.128/join.php";
                     String data = URLEncoder.encode("userEmail", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8");
                     data += "&" + URLEncoder.encode("userPassword", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8");
                     data += "&" + URLEncoder.encode("rePassword", "UTF-8") + "=" + URLEncoder.encode(rePassword, "UTF-8");

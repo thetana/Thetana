@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!--<LinearLayout-->
+        <!--android:orientation="horizontal"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content">-->
+
+        <!--<EditText-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:inputType="textEmailAddress"-->
+            <!--android:ems="10"-->
+            <!--android:id="@+id/friend_et_id"-->
+            <!--android:layout_weight="1"-->
+            <!--android:hint="친구의 아이디를 입력해 주세요." />-->
+
+        <!--<Button-->
+            <!--android:text="찾기"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:id="@+id/friend_bt_serch"-->
+            <!--android:layout_weight="6" />-->
+    <!--</LinearLayout>-->
+
+    <Button
+        android:id="@+id/invite_bt_invite"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="초대" />
+
+    <ListView
+        android:id="@+id/invite_lv_friend"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="9" />
+
+</LinearLayout>

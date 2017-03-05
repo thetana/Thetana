@@ -1,102 +1,65 @@
 package com.example.kc.thetana;
 
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ExpandableListView;
-import android.widget.TextView;
+import android.widget.ListView;
 
 /**
  * Created by kc on 2017-02-18.
  */
 
 public class MenuActivity extends AppCompatActivity {
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-    private SectionsPagerAdapter mSectionsPagerAdapter;
 
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
+    private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
+    static Context context;
+    Menu myMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        context = MenuActivity.this;
+        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        //setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), MenuActivity.this);
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
     }
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
     public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
+
         private static final String ARG_SECTION_NUMBER = "section_number";
+        private static Context myContext;
         ExpandableListView elv;
+        ListView lv_room;
         FriendExpandableAdapter friendExpandableAdapter = new FriendExpandableAdapter();
+        RoomAdapter roomAdapter = new RoomAdapter();
         Button bt_logout;
         SharedPreferences preferences;
         GlobalClass globalClass;
@@ -104,11 +67,8 @@ public class MenuActivity extends AppCompatActivity {
         public PlaceholderFragment() {
         }
 
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
+        public static PlaceholderFragment newInstance(int sectionNumber, Context context) {
+            myContext = context;
             PlaceholderFragment fragment = new PlaceholderFragment();
             Bundle args = new Bundle();
             args.putInt(ARG_SECTION_NUMBER, sectionNumber);
@@ -119,58 +79,130 @@ public class MenuActivity extends AppCompatActivity {
         @Override
         public void onResume() {
             super.onResume();
+        }
+
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setHasOptionsMenu(true);
+        }
 
 
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+            if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
+                inflater.inflate(R.menu.menu_main, menu);
+            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
+                inflater.inflate(R.menu.menu_chat, menu);
+            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
+                //inflater.inflate(R.menu.menu_main, menu);
+            }
+
+            super.onCreateOptionsMenu(menu, inflater);
+        }
+
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item) {
+            int id = item.getItemId();
+
+            if (id == R.id.frinend_action_addFriend) {
+                Intent intent = new Intent(myContext, FriendActivity.class);
+                startActivity(intent);
+                return true;
+            }
+            if (id == R.id.frinend_action_set) {
+                globalClass = new GlobalClass(context);
+                globalClass.updateFriends();
+                friendExpandableAdapter.setGroup(globalClass.getFriends());
+                return true;
+            }
+            if (id == R.id.room_action_addRoom) {
+                Intent intent = new Intent(myContext, FriendActivity.class);
+                startActivity(intent);
+                return true;
+            }
+            return super.onOptionsItemSelected(item);
+        }
+
+        @Override
+        public void onStart() {
+            super.onStart();
+
+            if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
+                globalClass = new GlobalClass(context);
+                globalClass.updateFriends();
+                friendExpandableAdapter.setGroup(globalClass.getFriends());
+                for (int i = 0; i < friendExpandableAdapter.getGroupCount(); i++) {
+                    elv.expandGroup(i);
+                }
+            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
+                globalClass = new GlobalClass(context);
+                globalClass.updateRooms();
+                roomAdapter.setItem(globalClass.getRooms());
+            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
+
+            }
         }
 
         @Override
         public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                                  Bundle savedInstanceState) {
+            setHasOptionsMenu(true);
             View rootView = inflater.inflate(R.layout.fragment_friend, container, false);
 
-            if(getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
-                globalClass = new GlobalClass(container.getContext());
-                rootView = inflater.inflate(R.layout.fragment_friend, container, false);
-                FloatingActionButton fab = (FloatingActionButton) rootView.findViewById(R.id.fab);
-                elv = (ExpandableListView) rootView.findViewById(R.id.elv);
-                elv.setAdapter(friendExpandableAdapter);
+            if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
+                globalClass = new GlobalClass(context);
+                globalClass.updateFriends();
                 friendExpandableAdapter.setGroup(globalClass.getFriends());
 
-                for(int i = 0; i < friendExpandableAdapter.getGroupCount(); i++){
-                    elv.expandGroup(i);
-                }
+                rootView = inflater.inflate(R.layout.fragment_friend, container, false);
+                elv = (ExpandableListView) rootView.findViewById(R.id.elv);
+                elv.setAdapter(friendExpandableAdapter);
+                //friendExpandableAdapter.setGroup(globalClass.getFriends());
+
+//                for (int i = 0; i < friendExpandableAdapter.getGroupCount(); i++) {
+//                    elv.expandGroup(i);
+//                }
 
                 elv.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
                     @Override
                     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-                        FriendChild friendChild = (FriendChild)friendExpandableAdapter.getChild(groupPosition,childPosition);
+                        FriendChild friendChild = (FriendChild) friendExpandableAdapter.getChild(groupPosition, childPosition);
                         Intent intent = new Intent(container.getContext(), ProfileActivity.class);
 
                         intent.putExtra("gubun", "");
-                        if(groupPosition == 0) intent.putExtra("gubun", "me");
+                        if (groupPosition == 0) intent.putExtra("gubun", "me");
 
+                        intent.putExtra("id", friendChild.id);
                         intent.putExtra("name", friendChild.name);
                         intent.putExtra("state", friendChild.state);
+                        intent.putExtra("roomId", friendChild.roomId);
 
                         startActivity(intent);
                         return false;
                     }
                 });
 
-
-
-
-
-                fab.setOnClickListener(new View.OnClickListener() {
+            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
+                globalClass = new GlobalClass(context);
+                globalClass.updateRooms();
+                roomAdapter.setItem(globalClass.getRooms());
+                rootView = inflater.inflate(R.layout.fragment_room, container, false);
+                lv_room = (ListView) rootView.findViewById(R.id.room_lv_room);
+                lv_room.setAdapter(roomAdapter);
+                lv_room.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
-                    public void onClick(View view) {
-                        Intent intent = new Intent(container.getContext(), FriendActivity.class);
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        RoomItem roomItem = (RoomItem) roomAdapter.getItem(position);
+                        Intent intent = new Intent(container.getContext(), ChatActivity.class);
+
+                        intent.putExtra("roomId", roomItem.id);
+                        intent.putExtra("gubun", roomItem.gubun);
+
                         startActivity(intent);
                     }
                 });
-            }else if(getArguments().getInt(ARG_SECTION_NUMBER) == 2){
-
-            }else if(getArguments().getInt(ARG_SECTION_NUMBER) == 3){
+            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
                 rootView = inflater.inflate(R.layout.fragment_setting, container, false);
                 bt_logout = (Button) rootView.findViewById(R.id.setting_bt_logout);
                 bt_logout.setOnClickListener(new View.OnClickListener() {
@@ -179,6 +211,18 @@ public class MenuActivity extends AppCompatActivity {
                         preferences = container.getContext().getSharedPreferences("user", 0);
                         SharedPreferences.Editor editor = preferences.edit();
                         editor.clear();
+                        editor.commit();
+
+                        preferences = container.getContext().getSharedPreferences("friend", 0);
+                        editor = preferences.edit();
+                        editor.clear();
+                        editor.commit();
+
+                        preferences = container.getContext().getSharedPreferences("room", 0);
+                        editor = preferences.edit();
+                        editor.clear();
+                        editor.commit();
+
                         Intent intent = new Intent(container.getContext(), LoginActivity.class);
                         startActivity(intent);
                     }
@@ -188,21 +232,20 @@ public class MenuActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
+        Context context;
+        int position = 0;
 
-        public SectionsPagerAdapter(FragmentManager fm) {
+        public SectionsPagerAdapter(FragmentManager fm, Context context) {
             super(fm);
+            this.context = context;
         }
 
         @Override
         public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            this.position = position;
+
+            return PlaceholderFragment.newInstance(position + 1, context);
         }
 
         @Override

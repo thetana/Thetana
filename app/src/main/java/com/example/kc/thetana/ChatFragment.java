@@ -1,84 +1,67 @@
 package com.example.kc.thetana;
 
 import android.app.Activity;
+import android.app.Fragment;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.app.Fragment;
+import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.net.URISyntaxException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-
-import com.github.nkzawa.emitter.Emitter;
-import com.github.nkzawa.socketio.client.IO;
-import com.github.nkzawa.socketio.client.Socket;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * Created by kc on 2017-02-25.
  */
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link ChatFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link ChatFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class ChatFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+
+    static Context context;
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
     private EditText mInputMessageView;
     private RecyclerView mMessagesView;
     private OnFragmentInteractionListener mListener;
     private List<Message> mMessages = new ArrayList<Message>();
     private RecyclerView.Adapter mAdapter;
+    SendHandler sendHandler;
+    ChatThread chatThread;
+    ChatHandler handler;
+    String ServerIP = "192.168.244.128";
+    Socket socket;
+    DataOutputStream out;
+    String room = "";
 
-    private Socket socket;
-
-    {
-        try {
-            socket = IO.socket("http://192.168.244.128:3000/");
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ChatFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static ChatFragment newInstance(String param1, String param2) {
+    public ChatFragment newInstance(String param1, String param2) {
         ChatFragment fragment = new ChatFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
@@ -95,19 +78,62 @@ public class ChatFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        socket.connect();
-        socket.on("message", handleIncomingMessages);
+        room = ((Activity) context).getIntent().getStringExtra("roomId");
+        handler = new ChatHandler();
+        sendHandler = new SendHandler();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    socket = new Socket(ServerIP, 9999);
+                    out = new DataOutputStream(socket.getOutputStream());
+                    String s = context.getSharedPreferences("user", 0).getString("id", "");
+                    out.writeUTF(s);
+                    chatThread = new ChatThread(handler, socket);
+                    chatThread.start();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
+    class ChatHandler extends Handler {
+        @Override
+        public void handleMessage(android.os.Message msg) {
+
+            addMessage(msg.getData().getString("msg"));
+
+//            Intent intent = new Intent(MyService.this, MainActivity.class);
+//            PendingIntent pendingIntent = PendingIntent.getActivity(MyService.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//
+//            notification = new Notification.Builder(getApplicationContext())
+//                    .setContentTitle("Content Title")
+//                    .setContentText("Content Text")
+//                    .setSmallIcon(R.drawable.ic_stat_name)
+//                    .setTicker("알림!!")
+//                    .setContentIntent(pendingIntent)
+//                    .build();
+//            notification.defaults = Notification.DEFAULT_SOUND;
+//            notification.flags = Notification.FLAG_ONLY_ALERT_ONCE;
+//            notification.flags = Notification.FLAG_AUTO_CANCEL;
+//            manager.notify(777, notification);
+//            Toast.makeText(MyService.this, "뜸?", Toast.LENGTH_SHORT).show();
+        }
+    }
+    class SendHandler extends Handler {
+        @Override
+        public void handleMessage(android.os.Message msg) {
+            mInputMessageView.setText("");
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_chat, container, false);
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -118,6 +144,7 @@ public class ChatFragment extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         mAdapter = new MessageAdapter(mMessages);
+        context = activity;
         /*try {
             mListener = (OnFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
@@ -144,21 +171,80 @@ public class ChatFragment extends Fragment {
                 sendMessage();
             }
         });
-
-
     }
 
     private void sendMessage() {
-        String message = mInputMessageView.getText().toString().trim();
-        mInputMessageView.setText("");
-        //addMessage(message);
-        JSONObject sendText = new JSONObject();
-        try {
-            sendText.put("text", message);
-            socket.emit("message", sendText);
-        } catch (JSONException e) {
+        if (mInputMessageView.getText().toString().equals("")) return;
 
-        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject jsonObject = new JSONObject();
+                    JSONArray array = new JSONArray();
+                    ((Activity) context).getIntent().getExtras();
+                    array.put(0, context.getSharedPreferences("user", 0).getString("id", ""));
+                    array.put(1, ((Activity) context).getIntent().getStringExtra("id"));
+
+                    if (room.equals("")) {
+                        String link = "http://192.168.244.128/addRoom.php";
+                        String data = URLEncoder.encode("userId", "UTF-8") + "=" + URLEncoder.encode(array.toString(), "UTF-8");
+                        data += "&" + URLEncoder.encode("roomGubun", "UTF-8") + "=" + URLEncoder.encode("PtoP", "UTF-8");
+
+                        URL url = new URL(link);
+                        URLConnection conn = url.openConnection();
+
+                        conn.setDoOutput(true);
+                        OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+
+                        wr.write(data);
+                        wr.flush();
+
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+
+                        StringBuilder sb = new StringBuilder();
+
+                        String json;
+                        while ((json = reader.readLine()) != null) {
+                            sb.append(json);
+                            break;
+                        }
+
+                        room = sb.toString();
+
+                        jsonObject.put("order", "createRoom");
+                        jsonObject.put("friends", array);
+                    } else {
+                        jsonObject.put("order", "sendMsg");
+                    }
+                    jsonObject.put("room", room);
+                    jsonObject.put("msg", mInputMessageView.getText().toString());
+
+                    out.writeUTF(jsonObject.toString());
+                    sendHandler.sendEmptyMessage(1);
+                } catch (SocketException e) {
+                    System.out.println("예외:" + e);
+                    System.out.println("##접속중인 서버와 연결이 끊어졌습니다.");
+                    return;
+                } catch (IOException e) {
+                    System.out.println("예외:" + e);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+//        String message = mInputMessageView.getText().toString().trim();
+//        mInputMessageView.setText("");
+//        //addMessage(message);
+//        JSONObject sendText = new JSONObject();
+//        try {
+//            sendText.put("text", message);
+//            //socket.emit("message", sendText);
+//        } catch (JSONException e) {
+//
+//        }
 
     }
 
@@ -168,7 +254,7 @@ public class ChatFragment extends Fragment {
             sendData.put("image", encodeImage(path));
             Bitmap bmp = decodeImage(sendData.getString("image"));
             addImage(bmp);
-            socket.emit("message", sendData);
+            //ocket.emit("message", sendData);
         } catch (JSONException e) {
 
         }
@@ -209,9 +295,8 @@ public class ChatFragment extends Fragment {
         bm.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] b = baos.toByteArray();
         String encImage = Base64.encodeToString(b, Base64.DEFAULT);
-        //Base64.de
-        return encImage;
 
+        return encImage;
     }
 
     private Bitmap decodeImage(String data) {
@@ -220,59 +305,21 @@ public class ChatFragment extends Fragment {
         return bmp;
     }
 
-    private Emitter.Listener handleIncomingMessages = new Emitter.Listener() {
-        @Override
-        public void call(final Object... args) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    JSONObject data = (JSONObject) args[0];
-                    String message;
-                    String imageText;
-                    try {
-                        message = data.getString("text").toString();
-                        addMessage(message);
-
-                    } catch (JSONException e) {
-                        // return;
-                    }
-                    try {
-                        imageText = data.getString("image");
-                        addImage(decodeImage(imageText));
-                    } catch (JSONException e) {
-                        //retur
-                    }
-
-                }
-            });
-        }
-    };
-
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
+
         public void onFragmentInteraction(Uri uri);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        socket.disconnect();
+        //socket.disconnect();
     }
 
 }

@@ -65,7 +65,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         public ViewHolder(View itemView) {
             super(itemView);
             mImageView = (ImageView) itemView.findViewById(R.id.image);
-            mMessageView = (TextView) itemView.findViewById(R.id.message);
+            mMessageView = (TextView) itemView.findViewById(R.id.f_message);
         }
 
         public void setMessage(String message) {

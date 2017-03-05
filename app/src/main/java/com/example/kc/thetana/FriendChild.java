@@ -8,4 +8,5 @@ public class FriendChild {
     public String id;
     public String name;
     public String state;
+    public String roomId;
 }

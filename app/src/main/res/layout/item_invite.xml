@@ -7,8 +7,15 @@
     android:minHeight="50dp"
     >
 
+    <CheckBox
+        android:id="@+id/invite_cb_check"
+        android:layout_width="30dp"
+        android:layout_height="match_parent"
+        android:maxWidth="30dp"
+        android:minWidth="30dp" />
+
     <ImageView
-        android:id="@+id/child_iv_profile"
+        android:id="@+id/invite_iv_profile"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:maxHeight="50dp"
@@ -18,18 +25,9 @@
         app:srcCompat="@mipmap/ic_launcher" />
 
     <TextView
-        android:id="@+id/child_tv_name"
+        android:id="@+id/invite_tv_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="TextView" />
-
-    <TextView
-        android:text="TextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/child_tv_state"
-        android:layout_weight="1"
-        android:gravity="right" />
+        android:layout_weight="1" />
 
 </LinearLayout>

@@ -33,7 +33,7 @@
         android:inputType="textEmailAddress"
         android:ems="10"
         android:id="@+id/join_et_id"
-        android:hint="아이디를 입력해 주세요.(친구찾기용)" />
+        android:hint="아이디를 입력해 주세요." />
 
     <EditText
         android:layout_width="match_parent"
