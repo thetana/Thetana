@@ -4,10 +4,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -22,11 +20,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,7 +39,7 @@ import java.net.URLEncoder;
  * Created by kc on 2017-02-14.
  */
 
-public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener{
+public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
     private EditText et_email;
     private EditText et_password;
     private Button bt_login;
@@ -51,6 +48,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     GoogleApiClient mGoogleApiClient;
     private static final int RC_SIGN_IN = 9001;
     private static final String TAG = "LoginActivity";
+    String token;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,11 +81,11 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         bt_login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(TextUtils.isEmpty(et_email.getText().toString())) {
+                if (TextUtils.isEmpty(et_email.getText().toString())) {
                     Toast.makeText(getApplicationContext(), "이메일을 입력해 주세요.", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                if(TextUtils.isEmpty(et_password.getText().toString())) {
+                if (TextUtils.isEmpty(et_password.getText().toString())) {
                     Toast.makeText(getApplicationContext(), "비밀번호를 입력해 주세요.", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -133,14 +132,14 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
-    private void signOut() {
-        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
-                new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(Status status) {
 
-                    }
-                });
+    private void signOut() {
+        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(Status status) {
+
+            }
+        });
     }
 
     @Override
@@ -181,6 +180,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     }
 
     private void getData(final Context context, String email, String password) {
+        token = FirebaseInstanceId.getInstance().getToken();
 
         class GetDataJSON extends AsyncTask<String, Void, String> {
             ProgressDialog loading;
@@ -201,20 +201,23 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 String name = "";
                 String stateMessage = "";
                 try {
-                   jsonObj = new JSONObject(myJSON);
-                   chk = jsonObj.getString("chk");
-                   id = jsonObj.getString("id");
-                   name = jsonObj.getString("name");
-                   stateMessage = jsonObj.getString("stateMessage");
+                    jsonObj = new JSONObject(myJSON);
+                    chk = jsonObj.getString("chk");
+                    id = jsonObj.getString("id");
+                    name = jsonObj.getString("name");
+                    stateMessage = jsonObj.getString("stateMessage");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                if(chk.equals("success")){
+                if (chk.equals("success")) {
+
+
                     preferences = getSharedPreferences("user", 0);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putString("id", id);
                     editor.putString("name", name);
                     editor.putString("stateMessage", stateMessage);
+                    editor.putString("token", token);
                     editor.commit();
 
                     globalClass = new GlobalClass(context);
@@ -222,7 +225,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
                     Intent intent = new Intent(LoginActivity.this, MenuActivity.class);
                     startActivity(intent);
-                }else{
+                } else {
                     Toast.makeText(getApplicationContext(), chk, Toast.LENGTH_LONG).show();
                 }
             }
@@ -236,6 +239,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     String link = "http://192.168.244.128/login.php";
                     String data = URLEncoder.encode("userEmail", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8");
                     data += "&" + URLEncoder.encode("userPassword", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8");
+                    data += "&" + URLEncoder.encode("token", "UTF-8") + "=" + URLEncoder.encode(token, "UTF-8");
 
                     URL url = new URL(link);
                     URLConnection conn = url.openConnection();
@@ -247,7 +251,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     wr.flush();
 
                     BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-
 
                     StringBuilder sb = new StringBuilder();
 

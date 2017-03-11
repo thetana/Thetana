@@ -51,6 +51,7 @@ public class ProfileActivity extends AppCompatActivity {
                 Intent intent = new Intent(ProfileActivity.this, ChatActivity.class);
                 intent.putExtra("id", id);
                 intent.putExtra("roomId", roomId);
+                intent.putExtra("roomGubun", "PtoP");
 
                 startActivity(intent);
             }

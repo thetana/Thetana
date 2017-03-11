@@ -5,12 +5,16 @@
     android:layout_height="50dp"
     android:maxHeight="50dp"
     android:minHeight="50dp"
+    android:descendantFocusability="blocksDescendants"
     >
 
     <CheckBox
         android:id="@+id/invite_cb_check"
         android:layout_width="30dp"
         android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false"
+        android:checked="false"
         android:maxWidth="30dp"
         android:minWidth="30dp" />
 

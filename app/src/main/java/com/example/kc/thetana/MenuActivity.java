@@ -24,6 +24,8 @@ import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.ListView;
 
+import com.google.firebase.messaging.FirebaseMessaging;
+
 /**
  * Created by kc on 2017-02-18.
  */
@@ -39,6 +41,9 @@ public class MenuActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
+
+        FirebaseMessaging.getInstance().subscribeToTopic("news");
+
         context = MenuActivity.this;
         //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         //setSupportActionBar(toolbar);
@@ -117,7 +122,7 @@ public class MenuActivity extends AppCompatActivity {
                 return true;
             }
             if (id == R.id.room_action_addRoom) {
-                Intent intent = new Intent(myContext, FriendActivity.class);
+                Intent intent = new Intent(myContext, InviteActivity.class);
                 startActivity(intent);
                 return true;
             }
@@ -197,7 +202,7 @@ public class MenuActivity extends AppCompatActivity {
                         Intent intent = new Intent(container.getContext(), ChatActivity.class);
 
                         intent.putExtra("roomId", roomItem.id);
-                        intent.putExtra("gubun", roomItem.gubun);
+                        intent.putExtra("roomGubun", roomItem.gubun);
 
                         startActivity(intent);
                     }

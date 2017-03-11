@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
@@ -59,7 +60,8 @@ public class ChatFragment extends Fragment {
     String ServerIP = "192.168.244.128";
     Socket socket;
     DataOutputStream out;
-    String room = "";
+    String room = "", myId = "", roomGubun = "", myName = "";
+//    HashMap<String, String> roommate  = new HashMap<String, String>(); // 친구맵
 
     public ChatFragment newInstance(String param1, String param2) {
         ChatFragment fragment = new ChatFragment();
@@ -78,7 +80,17 @@ public class ChatFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        myId = context.getSharedPreferences("user", 0).getString("id", "");
+        myName = context.getSharedPreferences("user", 0).getString("name", "");
         room = ((Activity) context).getIntent().getStringExtra("roomId");
+        roomGubun = ((Activity) context).getIntent().getStringExtra("roomGubun");
+//        myId = context.getSharedPreferences("user", 0).getString("id", "");
+//        roommate.put(myId, myId);
+//        String[] ids = ((Activity) context).getIntent().getStringExtra("id").split(",");
+//        for(int i = 0; i < ids.length; i++){
+//            roommate.put(ids[i], ids[i]);
+//        }
+
         handler = new ChatHandler();
         sendHandler = new SendHandler();
         new Thread(new Runnable() {
@@ -87,7 +99,7 @@ public class ChatFragment extends Fragment {
                 try {
                     socket = new Socket(ServerIP, 9999);
                     out = new DataOutputStream(socket.getOutputStream());
-                    String s = context.getSharedPreferences("user", 0).getString("id", "");
+                    String s = myId;
                     out.writeUTF(s);
                     chatThread = new ChatThread(handler, socket);
                     chatThread.start();
@@ -121,6 +133,7 @@ public class ChatFragment extends Fragment {
 //            Toast.makeText(MyService.this, "뜸?", Toast.LENGTH_SHORT).show();
         }
     }
+
     class SendHandler extends Handler {
         @Override
         public void handleMessage(android.os.Message msg) {
@@ -182,14 +195,24 @@ public class ChatFragment extends Fragment {
                 try {
                     JSONObject jsonObject = new JSONObject();
                     JSONArray array = new JSONArray();
-                    ((Activity) context).getIntent().getExtras();
-                    array.put(0, context.getSharedPreferences("user", 0).getString("id", ""));
-                    array.put(1, ((Activity) context).getIntent().getStringExtra("id"));
+
+//                    Iterator<String> iterator = roommate.keySet().iterator();
+//                    int i = 0;
+//                    while (iterator.hasNext()){
+//                        array.put(i + 1, iterator.next());
+//                        i++;
+//                    } // 친구 맵 관리
 
                     if (room.equals("")) {
+                        array.put(0, myId);
+                        String[] ids = ((Activity) context).getIntent().getStringExtra("id").split(",");
+                        for (int i = 0; i < ids.length; i++) {
+                            array.put(i + 1, ids[i]);
+                        }
+
                         String link = "http://192.168.244.128/addRoom.php";
                         String data = URLEncoder.encode("userId", "UTF-8") + "=" + URLEncoder.encode(array.toString(), "UTF-8");
-                        data += "&" + URLEncoder.encode("roomGubun", "UTF-8") + "=" + URLEncoder.encode("PtoP", "UTF-8");
+                        data += "&" + URLEncoder.encode("roomGubun", "UTF-8") + "=" + URLEncoder.encode(roomGubun, "UTF-8");
 
                         URL url = new URL(link);
                         URLConnection conn = url.openConnection();
@@ -201,7 +224,6 @@ public class ChatFragment extends Fragment {
                         wr.flush();
 
                         BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-
 
                         StringBuilder sb = new StringBuilder();
 
@@ -220,7 +242,7 @@ public class ChatFragment extends Fragment {
                     }
                     jsonObject.put("room", room);
                     jsonObject.put("msg", mInputMessageView.getText().toString());
-
+                    sendFCM(mInputMessageView.getText().toString());
                     out.writeUTF(jsonObject.toString());
                     sendHandler.sendEmptyMessage(1);
                 } catch (SocketException e) {
@@ -245,7 +267,50 @@ public class ChatFragment extends Fragment {
 //        } catch (JSONException e) {
 //
 //        }
+    }
 
+    private void sendFCM(final String msg) {
+
+        class InsertData extends AsyncTask<String, Void, String> {
+            @Override
+            protected String doInBackground(String... params) {
+
+                try {
+                    String message = (String) params[0];
+
+                    String link = "http://192.168.244.128/sendFCM.php";
+                    String data = URLEncoder.encode("title", "UTF-8") + "=" + URLEncoder.encode(myName, "UTF-8");
+                    data += "&" + URLEncoder.encode("roomId", "UTF-8") + "=" + URLEncoder.encode(room, "UTF-8");
+                    data += "&" + URLEncoder.encode("message", "UTF-8") + "=" + URLEncoder.encode(message, "UTF-8");
+                    data += "&" + URLEncoder.encode("gubun", "UTF-8") + "=" + URLEncoder.encode(roomGubun, "UTF-8");
+
+                    URL url = new URL(link);
+                    URLConnection conn = url.openConnection();
+
+                    conn.setDoOutput(true);
+                    OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+
+                    wr.write(data);
+                    wr.flush();
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+                    StringBuilder sb = new StringBuilder();
+                    String line = null;
+
+                    // Read Server Response
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line);
+                        break;
+                    }
+                    return sb.toString();
+                } catch (Exception e) {
+                    return new String("Exception: " + e.getMessage());
+                }
+            }
+        }
+        InsertData task = new InsertData();
+        task.execute(msg);
     }
 
     public void sendImage(String path) {
@@ -312,7 +377,6 @@ public class ChatFragment extends Fragment {
     }
 
     public interface OnFragmentInteractionListener {
-
         public void onFragmentInteraction(Uri uri);
     }
 
