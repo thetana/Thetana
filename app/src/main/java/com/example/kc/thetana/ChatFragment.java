@@ -48,6 +48,7 @@ public class ChatFragment extends Fragment {
     static Context context;
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    GlobalClass globalClass;
 
     private EditText mInputMessageView;
     private RecyclerView mMessagesView;
@@ -61,6 +62,7 @@ public class ChatFragment extends Fragment {
     Socket socket;
     DataOutputStream out;
     String room = "", myId = "", roomGubun = "", myName = "";
+    DBHelper dbHelper;
 //    HashMap<String, String> roommate  = new HashMap<String, String>(); // 친구맵
 
     public ChatFragment newInstance(String param1, String param2) {
@@ -80,10 +82,12 @@ public class ChatFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        dbHelper = new DBHelper(context, "thetana.db", null, 1);
         myId = context.getSharedPreferences("user", 0).getString("id", "");
         myName = context.getSharedPreferences("user", 0).getString("name", "");
         room = ((Activity) context).getIntent().getStringExtra("roomId");
         roomGubun = ((Activity) context).getIntent().getStringExtra("roomGubun");
+
 //        myId = context.getSharedPreferences("user", 0).getString("id", "");
 //        roommate.put(myId, myId);
 //        String[] ids = ((Activity) context).getIntent().getStringExtra("id").split(",");
@@ -110,27 +114,25 @@ public class ChatFragment extends Fragment {
         }).start();
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        try {
+            JSONObject jsonObj = dbHelper.getChat(room);
+            JSONArray jsonArray = jsonObj.getJSONArray("chat");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                addMessage(jsonArray.get(i).toString());
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     class ChatHandler extends Handler {
         @Override
         public void handleMessage(android.os.Message msg) {
-
-            addMessage(msg.getData().getString("msg"));
-
-//            Intent intent = new Intent(MyService.this, MainActivity.class);
-//            PendingIntent pendingIntent = PendingIntent.getActivity(MyService.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-//
-//            notification = new Notification.Builder(getApplicationContext())
-//                    .setContentTitle("Content Title")
-//                    .setContentText("Content Text")
-//                    .setSmallIcon(R.drawable.ic_stat_name)
-//                    .setTicker("알림!!")
-//                    .setContentIntent(pendingIntent)
-//                    .build();
-//            notification.defaults = Notification.DEFAULT_SOUND;
-//            notification.flags = Notification.FLAG_ONLY_ALERT_ONCE;
-//            notification.flags = Notification.FLAG_AUTO_CANCEL;
-//            manager.notify(777, notification);
-//            Toast.makeText(MyService.this, "뜸?", Toast.LENGTH_SHORT).show();
+            if (room.equals(msg.getData().getString("room")))
+                addMessage(msg.getData().getString("msg"));
         }
     }
 
@@ -235,6 +237,9 @@ public class ChatFragment extends Fragment {
 
                         room = sb.toString();
 
+                        globalClass = new GlobalClass(context);
+                        globalClass.updateRooms();
+
                         jsonObject.put("order", "createRoom");
                         jsonObject.put("friends", array);
                     } else {
@@ -281,6 +286,7 @@ public class ChatFragment extends Fragment {
                     String link = "http://192.168.244.128/sendFCM.php";
                     String data = URLEncoder.encode("title", "UTF-8") + "=" + URLEncoder.encode(myName, "UTF-8");
                     data += "&" + URLEncoder.encode("roomId", "UTF-8") + "=" + URLEncoder.encode(room, "UTF-8");
+                    data += "&" + URLEncoder.encode("userId", "UTF-8") + "=" + URLEncoder.encode(myId, "UTF-8");
                     data += "&" + URLEncoder.encode("message", "UTF-8") + "=" + URLEncoder.encode(message, "UTF-8");
                     data += "&" + URLEncoder.encode("gubun", "UTF-8") + "=" + URLEncoder.encode(roomGubun, "UTF-8");
 

@@ -14,6 +14,9 @@ import android.util.Log;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -23,27 +26,30 @@ import java.util.Map;
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "MyFirebaseMsgService";
+    DBHelper dbHelper = new DBHelper(this, "thetana.db", null, 1);
 
-    /**
-     * Called when message is received.
-     *
-     * @param remoteMessage Object representing the message received from Firebase Cloud Messaging.
-     */
-    // [START receive_message]
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
+        Map<String, String> data = remoteMessage.getData();
         Log.d(TAG, "From: " + remoteMessage.getFrom());
 
-        if (remoteMessage.getData().size() > 0) {
-            Log.d(TAG, "Message data payload: " + remoteMessage.getData());
+        if (data.size() > 0) {
+            Log.d(TAG, "Message data payload: " + data);
         }
 
         if (remoteMessage.getNotification() != null) {
             Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
         }
+        dbHelper.edit("INSERT INTO chat"
+                + " VALUES(null, '" + data.get("message") + "', '"
+                + data.get("userId") + "', '"
+                + data.get("roomId") + "', '"
+                + data.get("gubun") + "', '"
+                + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()) + "');");
+
         ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         ComponentName componentName = activityManager.getRunningTasks(1).get(0).topActivity;
-        if (!ChatActivity.class.getName().equals(componentName.getClassName())) sendNotification(remoteMessage.getData());
+        if (!ChatActivity.class.getName().equals(componentName.getClassName())) sendNotification(data);
     }
 
     private void sendNotification(Map<String, String> messageBody) {

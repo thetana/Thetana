@@ -40,6 +40,7 @@ public class ChatThread extends Thread {
                 Bundle bundle = new Bundle();
 
                 bundle.putString("msg", jsonObject.getString("user") + " : " + jsonObject.getString("msg"));
+                bundle.putString("room", jsonObject.getString("room"));
                 message.setData(bundle);
                 handler.sendMessage(message);
 

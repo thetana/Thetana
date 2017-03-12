@@ -117,18 +117,18 @@ public class GlobalClass {
     private void getData(final String id, final String link) {
 
         class InsertData extends AsyncTask<String, Void, String> {
-            ProgressDialog loading;
+//            ProgressDialog loading;
 
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
-                loading = ProgressDialog.show(context, "Please Wait", null, true, true);
+//                loading = ProgressDialog.show(context, "Please Wait", null, true, true);
             }
 
             @Override
             protected void onPostExecute(String s) {
                 super.onPostExecute(s);
-                loading.dismiss();
+//                loading.dismiss();
                 if (link.equals("http://192.168.244.128/getMyFriend.php")) {
                     try {
                         preferences = context.getSharedPreferences("friend", 0);
