@@ -224,6 +224,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     globalClass.updateFriends();
 
                     Intent intent = new Intent(LoginActivity.this, MenuActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
                     startActivity(intent);
                 } else {
                     Toast.makeText(getApplicationContext(), chk, Toast.LENGTH_LONG).show();

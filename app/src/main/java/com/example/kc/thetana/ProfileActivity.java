@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import org.json.JSONException;
@@ -20,6 +21,7 @@ public class ProfileActivity extends AppCompatActivity {
     TextView tv_statemessage;
     TextView tv_name;
     Button bt_chat;
+    ImageButton ib_edit;
     String id, roomId;
     private SharedPreferences preferences;
     @Override
@@ -30,6 +32,7 @@ public class ProfileActivity extends AppCompatActivity {
         tv_statemessage = (TextView) findViewById(R.id.profile_tv_statemessage);
         tv_name = (TextView) findViewById(R.id.profile_tv_name);
         bt_chat = (Button) findViewById(R.id.profile_bt_chat);
+        ib_edit = (ImageButton) findViewById(R.id.profile_ib_edit);
 
         intent = this.getIntent();
         if(intent.getStringExtra("gubun").equals("me")) bt_chat.setVisibility(View.GONE);
@@ -53,6 +56,13 @@ public class ProfileActivity extends AppCompatActivity {
                 intent.putExtra("roomId", roomId);
                 intent.putExtra("roomGubun", "PtoP");
 
+                startActivity(intent);
+            }
+        });
+        ib_edit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ProfileActivity.this, ModifyFriendActivity.class);
                 startActivity(intent);
             }
         });

@@ -123,6 +123,7 @@ public class MenuActivity extends AppCompatActivity {
             }
             if (id == R.id.room_action_addRoom) {
                 Intent intent = new Intent(myContext, InviteActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                 startActivity(intent);
                 return true;
             }

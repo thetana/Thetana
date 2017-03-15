@@ -24,9 +24,13 @@ public class MainActivity extends AppCompatActivity {
 
         if (TextUtils.isEmpty(id) || id.equals(null) || id.equals("null")) {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
             startActivity(intent);
         } else {
             Intent intent = new Intent(MainActivity.this, MenuActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
             startActivity(intent);
         }
     }

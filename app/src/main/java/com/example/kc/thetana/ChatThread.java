@@ -39,7 +39,8 @@ public class ChatThread extends Thread {
                 android.os.Message message = new android.os.Message();
                 Bundle bundle = new Bundle();
 
-                bundle.putString("msg", jsonObject.getString("user") + " : " + jsonObject.getString("msg"));
+                bundle.putString("user", jsonObject.getString("user"));
+                bundle.putString("msg", jsonObject.getString("msg"));
                 bundle.putString("room", jsonObject.getString("room"));
                 message.setData(bundle);
                 handler.sendMessage(message);

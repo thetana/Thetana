@@ -120,8 +120,21 @@ public class ChatFragment extends Fragment {
         try {
             JSONObject jsonObj = dbHelper.getChat(room);
             JSONArray jsonArray = jsonObj.getJSONArray("chat");
+            String name = "";
             for (int i = 0; i < jsonArray.length(); i++) {
-                addMessage(jsonArray.get(i).toString());
+                int type = 0;
+                JSONObject object = jsonArray.getJSONObject(i);
+                if(object.getString("userId").equals(myId)) type = Message.TYPE_MMESSAGE;
+                else type = Message.TYPE_FMESSAGE;
+
+                try {
+                    JSONObject jsonObject = new JSONObject(context.getSharedPreferences("friend", 0).getString(object.getString("userId"), ""));
+                    name = jsonObject.getString("userName");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                addMessage(name, object.getString("message"), type);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -131,8 +144,20 @@ public class ChatFragment extends Fragment {
     class ChatHandler extends Handler {
         @Override
         public void handleMessage(android.os.Message msg) {
-            if (room.equals(msg.getData().getString("room")))
-                addMessage(msg.getData().getString("msg"));
+            if (room.equals(msg.getData().getString("room"))) {
+                String name = "";
+                int type = 0;
+                if(msg.getData().getString("user").equals(myId)) type = Message.TYPE_MMESSAGE;
+                else type = Message.TYPE_FMESSAGE;
+                try {
+                    JSONObject jsonObject = new JSONObject(context.getSharedPreferences("friend", 0).getString(msg.getData().getString("user"), ""));
+                    name = jsonObject.getString("userName");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                addMessage(name, msg.getData().getString("msg"), type);
+            }
         }
     }
 
@@ -331,18 +356,16 @@ public class ChatFragment extends Fragment {
         }
     }
 
-    private void addMessage(String message) {
+    private void addMessage(String id, String message, int type) {
+        mMessages.add(new Message.Builder(type).message(message).user(id).build());
 
-        mMessages.add(new Message.Builder(Message.TYPE_MESSAGE)
-                .message(message).build());
-        // mAdapter = new MessageAdapter(mMessages);
         mAdapter = new MessageAdapter(mMessages);
         mAdapter.notifyItemInserted(0);
         scrollToBottom();
     }
 
     private void addImage(Bitmap bmp) {
-        mMessages.add(new Message.Builder(Message.TYPE_MESSAGE)
+        mMessages.add(new Message.Builder(Message.TYPE_FIMAGE)
                 .image(bmp).build());
         mAdapter = new MessageAdapter(mMessages);
         mAdapter.notifyItemInserted(0);

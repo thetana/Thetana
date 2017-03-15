@@ -1,6 +1,5 @@
 package com.example.kc.thetana;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -53,9 +52,9 @@ public class GlobalClass {
 
         preferences = context.getSharedPreferences("friend", 0);
         Iterator<String> iterator = preferences.getAll().keySet().iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             try {
-                JSONObject c =  new JSONObject(preferences.getString(iterator.next(), ""));
+                JSONObject c = new JSONObject(preferences.getString(iterator.next(), ""));
                 String friendId = c.getString("friendId");
                 String bookmark = c.getString("bookmark");
                 String userName = c.getString("userName");
@@ -86,9 +85,9 @@ public class GlobalClass {
 
         preferences = context.getSharedPreferences("room", 0);
         Iterator<String> iterator = preferences.getAll().keySet().iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             try {
-                JSONObject jsonObject =  new JSONObject(preferences.getString(iterator.next(), ""));
+                JSONObject jsonObject = new JSONObject(preferences.getString(iterator.next(), ""));
                 String roomId = jsonObject.getString("roomId");
                 String roomGubun = jsonObject.getString("roomGubun");
                 String roomName = "";
@@ -96,7 +95,11 @@ public class GlobalClass {
                 JSONArray jsonArray = jsonObject.getJSONArray("roomName");
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject c = jsonArray.getJSONObject(i);
-                    roomName = roomName + "," +c.getString("userId");
+
+                    JSONObject friend = new JSONObject(context.getSharedPreferences("friend", 0).getString(c.getString("userId"), ""));
+                    String name = friend.getString("userName");
+
+                    roomName = roomName + "," + name;
                 }
                 roomName = roomName.substring(1);
 

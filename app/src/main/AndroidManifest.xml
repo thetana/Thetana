@@ -10,7 +10,6 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_stat_ic_notification" />
@@ -41,7 +40,7 @@
             android:name=".ProfileActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".ChatActivity" />
-        <activity android:name=".InviteActivity"></activity>
+        <activity android:name=".InviteActivity" />
 
         <service android:name=".MyFirebaseMessagingService">
             <intent-filter>
@@ -54,6 +53,7 @@
             </intent-filter>
         </service>
 
+        <activity android:name=".ModifyFriendActivity"></activity>
     </application>
 
 </manifest>

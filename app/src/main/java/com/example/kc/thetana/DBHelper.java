@@ -42,14 +42,17 @@ public class DBHelper extends SQLiteOpenHelper {
 
         Cursor cursor = db.rawQuery("SELECT userId, message FROM chat where roomId = '" + roomId + "'", null);
         int i = 0;
-        while (cursor.moveToNext()) {
-            try {
-                array.put(i, cursor.getString(0) + " : " + cursor.getString(1));
-                jsonObject.put("chat", array);
-            } catch (JSONException e) {
-                e.printStackTrace();
+        try {
+            while (cursor.moveToNext()) {
+                JSONObject object = new JSONObject();
+                object.put("userId", cursor.getString(0));
+                object.put("message", cursor.getString(1));
+                array.put(i, object);
+                i++;
             }
-            i++;
+            jsonObject.put("chat", array);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
 
         return jsonObject;
