@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.kc.thetana.ModifyFriendActivity">
+
+    <TextView
+        android:id="@+id/modify_f_tv_text1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="친구의 이름을 변경합니다." />
+
+    <EditText
+        android:id="@+id/modify_f_et_after"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName" />
+
+    <TextView
+        android:id="@+id/modify_f_tv_text2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="친구가 설정한 이름" />
+
+    <EditText
+        android:id="@+id/modify_f_et_before"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName" />
+
+    <Button
+        android:id="@+id/modify_f_bt_modify"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="변경" />
+</LinearLayout>

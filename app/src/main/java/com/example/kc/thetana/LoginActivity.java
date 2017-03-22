@@ -238,7 +238,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     String email = (String) params[0];
                     String password = (String) params[1];
 
-                    String link = "http://192.168.244.128/login.php";
+                    String link = getString(R.string.ip) + "login.php";
                     String data = URLEncoder.encode("userEmail", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8");
                     data += "&" + URLEncoder.encode("userPassword", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8");
                     data += "&" + URLEncoder.encode("token", "UTF-8") + "=" + URLEncoder.encode(token, "UTF-8");

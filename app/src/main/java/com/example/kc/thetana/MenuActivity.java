@@ -2,9 +2,11 @@ package com.example.kc.thetana;
 
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -23,8 +25,23 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.ListView;
+import android.widget.Toast;
 
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by kc on 2017-02-18.
@@ -36,12 +53,13 @@ public class MenuActivity extends AppCompatActivity {
     private ViewPager mViewPager;
     static Context context;
     Menu myMenu;
+    static DBHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
-
+        dbHelper = new DBHelper(MenuActivity.this, "thetana.db", null, 1);
         FirebaseMessaging.getInstance().subscribeToTopic("news");
 
         context = MenuActivity.this;
@@ -214,6 +232,10 @@ public class MenuActivity extends AppCompatActivity {
                 bt_logout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        logout(container.getContext().getSharedPreferences("user", 0).getString("id", ""));
+
+                        dbHelper.edit("DELETE FROM chat;");
+
                         preferences = container.getContext().getSharedPreferences("user", 0);
                         SharedPreferences.Editor editor = preferences.edit();
                         editor.clear();
@@ -230,11 +252,62 @@ public class MenuActivity extends AppCompatActivity {
                         editor.commit();
 
                         Intent intent = new Intent(container.getContext(), LoginActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
                         startActivity(intent);
                     }
                 });
             }
             return rootView;
+        }
+
+
+
+
+
+        private void logout(String id) {
+            class GetDataJSON extends AsyncTask<String, Void, String> {
+                ProgressDialog loading;
+                GlobalClass globalClass;
+
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    loading = ProgressDialog.show(context, "Please Wait", null, true, true);
+                }
+
+                @Override
+                protected void onPostExecute(String myJSON) {
+                    loading.dismiss();
+                }
+
+                @Override
+                protected String doInBackground(String... params) {
+                    try {
+                        String userId = (String) params[0];
+
+                        String link = getString(R.string.ip) + "logout.php";
+                        String data = URLEncoder.encode("userId", "UTF-8") + "=" + URLEncoder.encode(userId, "UTF-8");
+
+                        URL url = new URL(link);
+                        URLConnection conn = url.openConnection();
+
+                        conn.setDoOutput(true);
+                        OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+
+                        wr.write(data);
+                        wr.flush();
+
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+                        return "";
+                    } catch (Exception e) {
+                        return new String("Exception: " + e.getMessage());
+                    }
+                }
+            }
+            GetDataJSON task = new GetDataJSON();
+            task.execute(id);
         }
     }
 

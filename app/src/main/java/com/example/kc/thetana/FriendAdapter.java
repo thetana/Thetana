@@ -109,15 +109,15 @@ public class FriendAdapter extends BaseAdapter{
             }
 
             @Override
-            protected String doInBackground(String... params) {
+                    protected String doInBackground(String... params) {
 
-                try {
-                    preferences = context.getSharedPreferences("user", 0);
+                        try {
+                            preferences = context.getSharedPreferences("user", 0);
 
                     String userId = preferences.getString("id", "");
                     String friendId = (String) params[0];
 
-                    String link = "http://192.168.244.128/addFriend.php";
+                    String link = context.getString(R.string.ip) + "addFriend.php";
                     String data = URLEncoder.encode("userId", "UTF-8") + "=" + URLEncoder.encode(userId, "UTF-8");
                     data += "&" + URLEncoder.encode("friendId", "UTF-8") + "=" + URLEncoder.encode(friendId, "UTF-8");
 

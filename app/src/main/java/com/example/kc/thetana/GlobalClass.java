@@ -36,7 +36,7 @@ public class GlobalClass {
 
     public void updateFriends() {
         preferences = context.getSharedPreferences("user", 0);
-        getData(myId, "http://192.168.244.128/getMyFriend.php");
+        getData(myId, context.getString(R.string.ip) + "getMyFriend.php");
     }
 
     public ArrayList<FriendGroup> getFriends() {
@@ -78,7 +78,7 @@ public class GlobalClass {
 
     public void updateRooms() {
         preferences = context.getSharedPreferences("user", 0);
-        getData(myId, "http://192.168.244.128/getRoom.php");
+        getData(myId, context.getString(R.string.ip) + "getRoom.php");
     }
 
     public ArrayList<RoomItem> getRooms() {
@@ -132,7 +132,7 @@ public class GlobalClass {
             protected void onPostExecute(String s) {
                 super.onPostExecute(s);
 //                loading.dismiss();
-                if (link.equals("http://192.168.244.128/getMyFriend.php")) {
+                if (link.equals(context.getString(R.string.ip) + "getMyFriend.php")) {
                     try {
                         preferences = context.getSharedPreferences("friend", 0);
                         SharedPreferences.Editor editor = preferences.edit();
@@ -151,7 +151,7 @@ public class GlobalClass {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                } else if (link.equals("http://192.168.244.128/getRoom.php")) {
+                } else if (link.equals(context.getString(R.string.ip) + "getRoom.php")) {
                     try {
                         preferences = context.getSharedPreferences("room", 0);
                         SharedPreferences.Editor editor = preferences.edit();

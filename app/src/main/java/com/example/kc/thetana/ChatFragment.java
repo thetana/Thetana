@@ -58,7 +58,7 @@ public class ChatFragment extends Fragment {
     SendHandler sendHandler;
     ChatThread chatThread;
     ChatHandler handler;
-    String ServerIP = "192.168.244.128";
+    String ServerIP = "35.163.3.139";
     Socket socket;
     DataOutputStream out;
     String room = "", myId = "", roomGubun = "", myName = "";
@@ -237,7 +237,7 @@ public class ChatFragment extends Fragment {
                             array.put(i + 1, ids[i]);
                         }
 
-                        String link = "http://192.168.244.128/addRoom.php";
+                        String link = context.getString(R.string.ip) + "addRoom.php";
                         String data = URLEncoder.encode("userId", "UTF-8") + "=" + URLEncoder.encode(array.toString(), "UTF-8");
                         data += "&" + URLEncoder.encode("roomGubun", "UTF-8") + "=" + URLEncoder.encode(roomGubun, "UTF-8");
 
@@ -272,7 +272,7 @@ public class ChatFragment extends Fragment {
                     }
                     jsonObject.put("room", room);
                     jsonObject.put("msg", mInputMessageView.getText().toString());
-                    sendFCM(mInputMessageView.getText().toString());
+                    //sendFCM(mInputMessageView.getText().toString());
                     out.writeUTF(jsonObject.toString());
                     sendHandler.sendEmptyMessage(1);
                 } catch (SocketException e) {
@@ -308,7 +308,7 @@ public class ChatFragment extends Fragment {
                 try {
                     String message = (String) params[0];
 
-                    String link = "http://192.168.244.128/sendFCM.php";
+                    String link = context.getString(R.string.ip) + "sendFCM.php";
                     String data = URLEncoder.encode("title", "UTF-8") + "=" + URLEncoder.encode(myName, "UTF-8");
                     data += "&" + URLEncoder.encode("roomId", "UTF-8") + "=" + URLEncoder.encode(room, "UTF-8");
                     data += "&" + URLEncoder.encode("userId", "UTF-8") + "=" + URLEncoder.encode(myId, "UTF-8");

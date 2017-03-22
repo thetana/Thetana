@@ -65,7 +65,7 @@ public class FriendActivity extends AppCompatActivity {
                     String userId = preferences.getString("id", "");
                     String friendId = (String) params[0];
 
-                    String link = "http://192.168.244.128/getFriend.php";
+                    String link = getString(R.string.ip) + "getFriend.php";
                     String data = URLEncoder.encode("userId", "UTF-8") + "=" + URLEncoder.encode(userId, "UTF-8");
                     data += "&" + URLEncoder.encode("friendId", "UTF-8") + "=" + URLEncoder.encode(friendId, "UTF-8");
 

@@ -110,7 +110,7 @@ public class JoinActivity extends AppCompatActivity {
                     String id = (String) params[3];
                     String name = (String) params[4];
 
-                    String link = "http://192.168.244.128/join.php";
+                    String link = getString(R.string.ip) + "join.php";
                     String data = URLEncoder.encode("userEmail", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8");
                     data += "&" + URLEncoder.encode("userPassword", "UTF-8") + "=" + URLEncoder.encode(password, "UTF-8");
                     data += "&" + URLEncoder.encode("rePassword", "UTF-8") + "=" + URLEncoder.encode(rePassword, "UTF-8");
