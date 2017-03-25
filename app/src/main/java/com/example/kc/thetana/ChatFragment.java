@@ -37,6 +37,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 /**
@@ -54,7 +55,8 @@ public class ChatFragment extends Fragment {
     private RecyclerView mMessagesView;
     private OnFragmentInteractionListener mListener;
     private List<Message> mMessages = new ArrayList<Message>();
-    private RecyclerView.Adapter mAdapter;
+    private Hashtable<String, Integer> mHashtable = new Hashtable<String, Integer>();
+    private MessageAdapter mAdapter;
     SendHandler sendHandler;
     ChatThread chatThread;
     ChatHandler handler;
@@ -103,8 +105,8 @@ public class ChatFragment extends Fragment {
                 try {
                     socket = new Socket(ServerIP, 9999);
                     out = new DataOutputStream(socket.getOutputStream());
-                    String s = myId;
-                    out.writeUTF(s);
+                    out.writeUTF(myId);
+                    out.writeUTF(room);
                     chatThread = new ChatThread(handler, socket);
                     chatThread.start();
                 } catch (IOException e) {
@@ -134,7 +136,8 @@ public class ChatFragment extends Fragment {
                     e.printStackTrace();
                 }
 
-                addMessage(name, object.getString("message"), type);
+                //addMessage(name, object.getString("message"), type);
+                //updateRead(chatNo);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -145,18 +148,22 @@ public class ChatFragment extends Fragment {
         @Override
         public void handleMessage(android.os.Message msg) {
             if (room.equals(msg.getData().getString("room"))) {
-                String name = "";
-                int type = 0;
-                if(msg.getData().getString("user").equals(myId)) type = Message.TYPE_MMESSAGE;
-                else type = Message.TYPE_FMESSAGE;
-                try {
-                    JSONObject jsonObject = new JSONObject(context.getSharedPreferences("friend", 0).getString(msg.getData().getString("user"), ""));
-                    name = jsonObject.getString("userName");
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                if(msg.getData().getString("order").equals("sendMsg")) {
+                    String name = "";
+                    int type = 0;
+                    if (msg.getData().getString("user").equals(myId)) type = Message.TYPE_MMESSAGE;
+                    else type = Message.TYPE_FMESSAGE;
+                    try {
+                        JSONObject jsonObject = new JSONObject(context.getSharedPreferences("friend", 0).getString(msg.getData().getString("user"), ""));
+                        name = jsonObject.getString("userName");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    addMessage(name, msg.getData().getString("msg"), msg.getData().getString("chatNo"), msg.getData().getInt("readed"), type);
                 }
-
-                addMessage(name, msg.getData().getString("msg"), type);
+                else if(msg.getData().getString("order").equals("readMsg")) {
+                    readMessage(msg.getData().getString("chatNo"));
+                }
             }
         }
     }
@@ -174,24 +181,11 @@ public class ChatFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_chat, container, false);
     }
 
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        mAdapter = new MessageAdapter(mMessages);
+        mAdapter = new MessageAdapter(mMessages, mHashtable);
         context = activity;
-        /*try {
-            mListener = (OnFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }*/
-
     }
 
     @Override
@@ -270,9 +264,10 @@ public class ChatFragment extends Fragment {
                     } else {
                         jsonObject.put("order", "sendMsg");
                     }
+                    jsonObject.put("gubun", "message");
                     jsonObject.put("room", room);
                     jsonObject.put("msg", mInputMessageView.getText().toString());
-                    //sendFCM(mInputMessageView.getText().toString());
+                    sendFCM(mInputMessageView.getText().toString());
                     out.writeUTF(jsonObject.toString());
                     sendHandler.sendEmptyMessage(1);
                 } catch (SocketException e) {
@@ -286,25 +281,12 @@ public class ChatFragment extends Fragment {
                 }
             }
         }).start();
-
-//        String message = mInputMessageView.getText().toString().trim();
-//        mInputMessageView.setText("");
-//        //addMessage(message);
-//        JSONObject sendText = new JSONObject();
-//        try {
-//            sendText.put("text", message);
-//            //socket.emit("message", sendText);
-//        } catch (JSONException e) {
-//
-//        }
     }
 
     private void sendFCM(final String msg) {
-
         class InsertData extends AsyncTask<String, Void, String> {
             @Override
             protected String doInBackground(String... params) {
-
                 try {
                     String message = (String) params[0];
 
@@ -344,6 +326,56 @@ public class ChatFragment extends Fragment {
         task.execute(msg);
     }
 
+    private void updateRead(String chatNo) {
+        JSONObject jsonObject = new JSONObject();
+        class UpdateData extends AsyncTask<String, Void, String> {
+            @Override
+            protected String doInBackground(String... params) {
+                try {
+                    String link = context.getString(R.string.ip) + "putChat.php";
+                    String data = URLEncoder.encode("roomId", "UTF-8") + "=" + URLEncoder.encode(room, "UTF-8");
+                    data += "&" + URLEncoder.encode("userId", "UTF-8") + "=" + URLEncoder.encode(myId, "UTF-8");
+
+                    URL url = new URL(link);
+                    URLConnection conn = url.openConnection();
+
+                    conn.setDoOutput(true);
+                    OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+
+                    wr.write(data);
+                    wr.flush();
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+                    StringBuilder sb = new StringBuilder();
+                    String line = null;
+
+                    // Read Server Response
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line);
+                        break;
+                    }
+                    return sb.toString();
+                } catch (Exception e) {
+                    return new String("Exception: " + e.getMessage());
+                }
+            }
+        }
+        UpdateData task = new UpdateData();
+        task.execute();
+
+        try {
+            jsonObject.put("order", "readMsg");
+            jsonObject.put("room", room);
+            jsonObject.put("chatNo", chatNo);
+            out.writeUTF(jsonObject.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void sendImage(String path) {
         JSONObject sendData = new JSONObject();
         try {
@@ -356,18 +388,26 @@ public class ChatFragment extends Fragment {
         }
     }
 
-    private void addMessage(String id, String message, int type) {
-        mMessages.add(new Message.Builder(type).message(message).user(id).build());
+    private void readMessage(String chatNo) {
+        mAdapter.read(chatNo);
+        mAdapter.notifyItemInserted(0);
+        scrollToBottom();
+    }
 
-        mAdapter = new MessageAdapter(mMessages);
+    private void addMessage(String id, String message, String chatNo, int readed, int type) {
+        mHashtable.put(chatNo, mMessages.size());
+        mMessages.add(new Message.Builder(type).message(message).user(id).chatNo(chatNo).number(readed).build());
+
+        mAdapter = new MessageAdapter(mMessages, mHashtable);
         mAdapter.notifyItemInserted(0);
         scrollToBottom();
     }
 
     private void addImage(Bitmap bmp) {
+        mHashtable.put("", mMessages.size());
         mMessages.add(new Message.Builder(Message.TYPE_FIMAGE)
                 .image(bmp).build());
-        mAdapter = new MessageAdapter(mMessages);
+        mAdapter = new MessageAdapter(mMessages, mHashtable);
         mAdapter.notifyItemInserted(0);
         scrollToBottom();
     }
@@ -412,7 +452,10 @@ public class ChatFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        //socket.disconnect();
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-
 }

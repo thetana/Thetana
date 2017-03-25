@@ -30,6 +30,7 @@
         android:id="@+id/modify_f_et_before"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:editable="false"
         android:ems="10"
         android:inputType="textPersonName" />
 

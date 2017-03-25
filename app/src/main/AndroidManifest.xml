@@ -53,7 +53,8 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".ModifyFriendActivity"></activity>
+        <activity android:name=".ModifyFriendActivity" />
+        <activity android:name=".ModifyMeActivity"></activity>
     </application>
 
 </manifest>

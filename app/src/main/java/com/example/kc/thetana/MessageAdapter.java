@@ -9,16 +9,19 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.Hashtable;
 import java.util.List;
 
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
 
     private List<Message> mMessages;
+    private Hashtable<String, Integer> mHashtable = new Hashtable<String, Integer>();
     private int[] mUsernameColors;
 
-    public MessageAdapter(List<Message> messages) {
+    public MessageAdapter(List<Message> messages, Hashtable<String, Integer> hashtable) {
         mMessages = messages;
+        mHashtable = hashtable;
         //  mUsernameColors = context.getResources().getIntArray(R.array.username_colors);
     }
 
@@ -50,6 +53,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         Message message = mMessages.get(position);
         viewHolder.setMessage(message.getMessage());
         viewHolder.setName(message.getUser());
+        viewHolder.setNumber(message.getNumber());
         viewHolder.setImage(message.getImage());
     }
 
@@ -63,19 +67,28 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         return mMessages.get(position).getType();
     }
 
+    public void read(String chatNo){
+        for(int i = mHashtable.get(chatNo); i < mMessages.size(); i++){
+            mMessages.get(mHashtable.get(i)).mNumber--;
+        }
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder {
         private ImageView mImageView;
         private TextView tv_name;
         private TextView tv_message;
+        private TextView tv_number;
         public ViewHolder(View itemView, int viewType) {
             super(itemView);
             switch (viewType) {
                 case Message.TYPE_FMESSAGE:
                     tv_name = (TextView) itemView.findViewById(R.id.fmsg_tv_name);
                     tv_message = (TextView) itemView.findViewById(R.id.fmsg_tv_message);
+                    tv_number = (TextView) itemView.findViewById(R.id.fmsg_tv_number);
                     break;
                 case Message.TYPE_MMESSAGE:
                     tv_message = (TextView) itemView.findViewById(R.id.mymsg_tv_message);
+                    tv_number = (TextView) itemView.findViewById(R.id.mymsg_tv_number);
                     break;
                 case Message.TYPE_FIMAGE:
                     tv_name = (TextView) itemView.findViewById(R.id.fmsg_tv_name);
@@ -97,7 +110,11 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             if(null == name) return;
             tv_name.setText(name);
         }
-
+        public void setNumber(int number) {
+            if (null == tv_number) return;
+            if(1 > number) return;
+            tv_number.setText(String.valueOf(number));
+        }
         public void setImage(Bitmap bmp){
             if(null == mImageView) return;
             if(null == bmp) return;
