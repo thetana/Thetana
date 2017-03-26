@@ -25,6 +25,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.firebase.iid.FirebaseInstanceId;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -34,6 +35,9 @@ import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by kc on 2017-02-14.
@@ -49,6 +53,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private static final int RC_SIGN_IN = 9001;
     private static final String TAG = "LoginActivity";
     String token;
+    DBHelper dbHelper = new DBHelper(this, "thetana.db", null, 1);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -195,23 +200,28 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             @Override
             protected void onPostExecute(String myJSON) {
                 loading.dismiss();
-                JSONObject jsonObj = null;
+                JSONObject jsonObject = null;
+                JSONObject me = null;
+                JSONObject chat = null;
+                JSONArray chats = null;
                 String chk = "";
                 String id = "";
                 String name = "";
                 String stateMessage = "";
+
                 try {
-                    jsonObj = new JSONObject(myJSON);
-                    chk = jsonObj.getString("chk");
-                    id = jsonObj.getString("id");
-                    name = jsonObj.getString("name");
-                    stateMessage = jsonObj.getString("stateMessage");
+                    jsonObject = new JSONObject(myJSON);
+                    me = jsonObject.getJSONArray("me").getJSONObject(0);
+
+                    chk = me.getString("chk");
+                    id = me.getString("id");
+                    name = me.getString("name");
+                    stateMessage = me.getString("stateMessage");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+
                 if (chk.equals("success")) {
-
-
                     preferences = getSharedPreferences("user", 0);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putString("id", id);
@@ -223,9 +233,39 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     globalClass = new GlobalClass(context);
                     globalClass.updateFriends();
 
+                    try {
+                        chats = jsonObject.getJSONArray("chat");
+                        for (int i = 0; i < chats.length(); i++) {
+                            chat = chats.getJSONObject(i);
+                            StringBuilder stringBuilder = new StringBuilder();
+                            stringBuilder.append("INSERT INTO chat");
+                            stringBuilder.append(" VALUES(").append(chat.getString("chatId")).append(", ");
+                            stringBuilder.append(chat.getString("chatNo")).append(", ");
+                            stringBuilder.append(chat.getString("roomId")).append(", '");
+                            stringBuilder.append(chat.getString("userId")).append("', '");
+                            stringBuilder.append(chat.getString("gubun")).append("', '");
+                            stringBuilder.append(chat.getString("message")).append("', ");
+                            stringBuilder.append(chat.getString("readed")).append(", '");
+                            stringBuilder.append(chat.getString("insertDt")).append("', '");
+                            stringBuilder.append(chat.getString("updateDt")).append("')");
+                            dbHelper.edit(stringBuilder.toString());
+
+                            preferences = getSharedPreferences("chatNo", 0);
+                            editor = preferences.edit();
+                            editor.putInt(chat.getString("roomId"), chat.getInt("chatNo"));
+                            editor.commit();
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    preferences = getSharedPreferences("update", 0);
+                    editor = preferences.edit();
+                    editor.putString("chat", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()));
+                    editor.commit();
+
                     Intent intent = new Intent(LoginActivity.this, MenuActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
                 } else {
                     Toast.makeText(getApplicationContext(), chk, Toast.LENGTH_LONG).show();
@@ -255,14 +295,12 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 
                     StringBuilder sb = new StringBuilder();
-
                     String json;
                     while ((json = reader.readLine()) != null) {
-                        sb.append(json);
-                        break;
+                        sb.append(json + "\n");
                     }
 
-                    return sb.toString();
+                    return sb.toString().trim();
                 } catch (Exception e) {
                     return new String("Exception: " + e.getMessage());
                 }

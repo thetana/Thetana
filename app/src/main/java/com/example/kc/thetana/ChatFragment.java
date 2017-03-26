@@ -3,6 +3,7 @@ package com.example.kc.thetana;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -36,9 +37,12 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by kc on 2017-02-25.
@@ -119,29 +123,154 @@ public class ChatFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        try {
-            JSONObject jsonObj = dbHelper.getChat(room);
-            JSONArray jsonArray = jsonObj.getJSONArray("chat");
-            String name = "";
-            for (int i = 0; i < jsonArray.length(); i++) {
-                int type = 0;
-                JSONObject object = jsonArray.getJSONObject(i);
-                if(object.getString("userId").equals(myId)) type = Message.TYPE_MMESSAGE;
-                else type = Message.TYPE_FMESSAGE;
 
+        class InsertData extends AsyncTask<String, Void, String> {
+            @Override
+            protected void onPostExecute(String s) {
+                super.onPostExecute(s);
                 try {
-                    JSONObject jsonObject = new JSONObject(context.getSharedPreferences("friend", 0).getString(object.getString("userId"), ""));
-                    name = jsonObject.getString("userName");
+                    JSONArray chats = new JSONObject(s).getJSONArray("chat");
+                    for (int i = 0; i < chats.length(); i++) {
+                        JSONObject chat = chats.getJSONObject(i);
+                        StringBuilder stringBuilder = new StringBuilder();
+
+                        if(dbHelper.chatCount(chat.getString("chatId")) > 0){
+                            stringBuilder.append("UPDATE chat set readed = ").append(chat.getString("readed"));
+                            stringBuilder.append(", updateDt = ").append(chat.getString("updateDt")).append(", ");
+                            stringBuilder.append("WHERE chatId = ").append(chat.getString("chatId"));
+                        }else {
+                            stringBuilder.append("INSERT INTO chat");
+                            stringBuilder.append(" VALUES(").append(chat.getString("chatId")).append(", ");
+                            stringBuilder.append(chat.getString("chatNo")).append(", ");
+                            stringBuilder.append(chat.getString("roomId")).append(", '");
+                            stringBuilder.append(chat.getString("userId")).append("', '");
+                            stringBuilder.append(chat.getString("gubun")).append("', '");
+                            stringBuilder.append(chat.getString("message")).append("', ");
+                            stringBuilder.append(chat.getString("readed")).append(", '");
+                            stringBuilder.append(chat.getString("insertDt")).append("', '");
+                            stringBuilder.append(chat.getString("updateDt")).append("')");
+                        }
+                        dbHelper.edit(stringBuilder.toString());
+                    }
+                    SharedPreferences preferences = context.getSharedPreferences("update", 0);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putString("chat", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()));
+                    editor.commit();
+
+                    boolean isUpdate = true;
+                    String chatNo = "";
+                    int lastChatNo = 0;
+                    JSONObject jsonObj = dbHelper.getChat(room);
+                    JSONArray jsonArray = jsonObj.getJSONArray("chat");
+                    String name = "";
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        int type = 0;
+                        JSONObject object = jsonArray.getJSONObject(i);
+                        if(object.getString("userId").equals(myId)) type = Message.TYPE_MMESSAGE;
+                        else type = Message.TYPE_FMESSAGE;
+
+                        try {
+                            JSONObject jsonObject = new JSONObject(context.getSharedPreferences("friend", 0).getString(object.getString("userId"), ""));
+                            name = jsonObject.getString("userName");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        if (isUpdate && object.getInt("chatNo") > context.getSharedPreferences("chatNo", 0).getInt(room, 99999)){
+                            chatNo = object.getString("chatNo");
+                            isUpdate = false;
+                        }
+                        addMessage(name, object.getString("message"), object.getString("chatNo"), object.getInt("readed"), type);
+                        lastChatNo = object.getInt("chatNo");
+                    }
+
+                    if(!chatNo.equals("")) updateRead(chatNo);
+
+                    if(lastChatNo > 0) {
+                        preferences = context.getSharedPreferences("chatNo", 0);
+                        editor = preferences.edit();
+                        editor.putInt(room, lastChatNo);
+                        editor.commit();
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
-                //addMessage(name, object.getString("message"), type);
-                //updateRead(chatNo);
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
+
+            @Override
+            protected String doInBackground(String... params) {
+                try {
+                    String link = getString(R.string.ip) + "getChat.php";
+                    String data = URLEncoder.encode("roomId", "UTF-8") + "=" + URLEncoder.encode(room, "UTF-8");
+                    data += "&" + URLEncoder.encode("updateDt", "UTF-8") + "=" + URLEncoder.encode(context.getSharedPreferences("update", 0).getString("chat", ""), "UTF-8");
+
+                    URL url = new URL(link);
+                    URLConnection conn = url.openConnection();
+
+                    conn.setDoOutput(true);
+                    OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+
+                    wr.write(data);
+                    wr.flush();
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+                    StringBuilder sb = new StringBuilder();
+                    String json;
+                    while ((json = reader.readLine()) != null) {
+                        sb.append(json + "\n");
+                    }
+
+                    return sb.toString().trim();
+
+                } catch (Exception e) {
+                    return new String("Exception: " + e.getMessage());
+                }
+            }
         }
+        InsertData task = new InsertData();
+        task.execute();
+
+
+
+
+//        try {
+//            boolean isUpdate = true;
+//            String chatNo = "";
+//            int lastChatNo = 0;
+//            JSONObject jsonObj = dbHelper.getChat(room);
+//            JSONArray jsonArray = jsonObj.getJSONArray("chat");
+//            String name = "";
+//            for (int i = 0; i < jsonArray.length(); i++) {
+//                int type = 0;
+//                JSONObject object = jsonArray.getJSONObject(i);
+//                if(object.getString("userId").equals(myId)) type = Message.TYPE_MMESSAGE;
+//                else type = Message.TYPE_FMESSAGE;
+//
+//                try {
+//                    JSONObject jsonObject = new JSONObject(context.getSharedPreferences("friend", 0).getString(object.getString("userId"), ""));
+//                    name = jsonObject.getString("userName");
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//                if (isUpdate && object.getInt("chatNo") > context.getSharedPreferences("chatNo", 0).getInt(room, 99999)){
+//                    chatNo = object.getString("chatNo");
+//                    isUpdate = false;
+//                }
+//                addMessage(name, object.getString("message"), object.getString("chatNo"), object.getInt("readed"), type);
+//                lastChatNo = object.getInt("chatNo");
+//            }
+//
+//            if(!chatNo.equals("")) updateRead(chatNo);
+//
+//            if(lastChatNo > 0) {
+//                SharedPreferences preferences = context.getSharedPreferences("chatNo", 0);
+//                SharedPreferences.Editor editor = preferences.edit();
+//                editor.putInt(room, lastChatNo);
+//                editor.commit();
+//            }
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
     }
 
     class ChatHandler extends Handler {

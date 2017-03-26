@@ -21,7 +21,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE chat (chatId INTEGER PRIMARY KEY AUTOINCREMENT, message TEXT, userId TEXT, roomId TEXT, gubun TEXT, insertDt TEXT);");
+        db.execSQL("CREATE TABLE chat (chatId INTEGER PRIMARY KEY, chatNo INTEGER, roomId INTEGER, userId TEXT, gubun TEXT, readed INTEGER, gubun TEXT, insertDt TEXT, updateDt TEXT);");
     }
 
     @Override
@@ -40,13 +40,20 @@ public class DBHelper extends SQLiteOpenHelper {
         JSONObject jsonObject = new JSONObject();
         JSONArray array = new JSONArray();
 
-        Cursor cursor = db.rawQuery("SELECT userId, message FROM chat where roomId = '" + roomId + "'", null);
+        Cursor cursor = db.rawQuery("SELECT chatId, chatNo, roomId, userId, gubun, message, readed, insertDt, updateDt FROM chat where roomId = '" + roomId + "'", null);
         int i = 0;
         try {
             while (cursor.moveToNext()) {
                 JSONObject object = new JSONObject();
-                object.put("userId", cursor.getString(0));
-                object.put("message", cursor.getString(1));
+                object.put("chatId", cursor.getInt(0));
+                object.put("chatNo", cursor.getInt(1));
+                object.put("roomId", cursor.getInt(2));
+                object.put("userId", cursor.getString(3));
+                object.put("gubun", cursor.getString(4));
+                object.put("message", cursor.getString(5));
+                object.put("readed", cursor.getInt(6));
+                object.put("insertDt", cursor.getString(7));
+                object.put("updateDt", cursor.getString(8));
                 array.put(i, object);
                 i++;
             }
@@ -56,5 +63,12 @@ public class DBHelper extends SQLiteOpenHelper {
         }
 
         return jsonObject;
+    }
+    public int chatCount(String chatId) {
+        SQLiteDatabase db = getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("SELECT count(*) As chatId FROM chat where chatId = '" + chatId + "'", null);
+
+        return cursor.getInt(0);
     }
 }
