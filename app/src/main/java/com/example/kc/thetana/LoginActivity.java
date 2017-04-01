@@ -201,9 +201,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             protected void onPostExecute(String myJSON) {
                 loading.dismiss();
                 JSONObject jsonObject = null;
-                JSONObject me = null;
-                JSONObject chat = null;
-                JSONArray chats = null;
+                JSONObject object = null;
+                JSONArray jsonArray = null;
                 String chk = "";
                 String id = "";
                 String name = "";
@@ -211,12 +210,12 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
                 try {
                     jsonObject = new JSONObject(myJSON);
-                    me = jsonObject.getJSONArray("me").getJSONObject(0);
+                    object = new JSONObject(jsonObject.getString("me"));
 
-                    chk = me.getString("chk");
-                    id = me.getString("id");
-                    name = me.getString("name");
-                    stateMessage = me.getString("stateMessage");
+                    chk = object.getString("chk");
+                    id = object.getString("id");
+                    name = object.getString("name");
+                    stateMessage = object.getString("stateMessage");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -234,34 +233,86 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     globalClass.updateFriends();
 
                     try {
-                        chats = jsonObject.getJSONArray("chat");
-                        for (int i = 0; i < chats.length(); i++) {
-                            chat = chats.getJSONObject(i);
+                        dbHelper.edit("CREATE TABLE friend (friendNo INTEGER PRIMARY KEY AUTOINCREMENT, friendId TEXT, bookmark TEXT, friendName TEXT, userName TEXT, stateMessage TEXT, phoneNumber TEXT, profilePicture TEXT, backgroundPhoto TEXT);");
+                        dbHelper.edit("CREATE TABLE room (roomId INTEGER PRIMARY KEY, title TEXT, subTitle TEXT, roomGubun TEXT);");
+                        dbHelper.edit("CREATE TABLE roommate (roommateId INTEGER PRIMARY KEY AUTOINCREMENT, roomId INTEGER, userId TEXT);");
+                        dbHelper.edit("CREATE TABLE chat (chatId INTEGER PRIMARY KEY AUTOINCREMENT, chatNo INTEGER, roomId INTEGER, userId TEXT, gubun TEXT, message TEXT, readed INTEGER);");
+
+                        jsonArray = new JSONArray(jsonObject.getString("friend"));
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            object = jsonArray.getJSONObject(i);
                             StringBuilder stringBuilder = new StringBuilder();
-                            stringBuilder.append("INSERT INTO chat");
-                            stringBuilder.append(" VALUES(").append(chat.getString("chatId")).append(", ");
-                            stringBuilder.append(chat.getString("chatNo")).append(", ");
-                            stringBuilder.append(chat.getString("roomId")).append(", '");
-                            stringBuilder.append(chat.getString("userId")).append("', '");
-                            stringBuilder.append(chat.getString("gubun")).append("', '");
-                            stringBuilder.append(chat.getString("message")).append("', ");
-                            stringBuilder.append(chat.getString("readed")).append(", '");
-                            stringBuilder.append(chat.getString("insertDt")).append("', '");
-                            stringBuilder.append(chat.getString("updateDt")).append("')");
+                            stringBuilder.append("INSERT INTO friend VALUES(null, '");
+                            stringBuilder.append(object.getString("friendId")).append("', '");
+                            stringBuilder.append(object.getString("bookmark")).append("', '");
+                            stringBuilder.append(object.getString("friendName")).append("', '");
+                            stringBuilder.append(object.getString("userName")).append("', '");
+                            stringBuilder.append(object.getString("stateMessage")).append("', '");
+                            stringBuilder.append(object.getString("phoneNumber")).append("', '");
+                            stringBuilder.append(object.getString("profilePicture")).append("', '");
+                            stringBuilder.append(object.getString("backgroundPhoto")).append("')");
+                            dbHelper.edit(stringBuilder.toString());
+
+                            preferences = getSharedPreferences("update", 0);
+                            editor = preferences.edit();
+                            editor.putString("friend", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()));
+                            editor.commit();
+                        }
+
+                        jsonArray = new JSONArray(jsonObject.getString("room"));
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            object = jsonArray.getJSONObject(i);
+                            StringBuilder stringBuilder = new StringBuilder();
+                            stringBuilder.append("INSERT INTO room VALUES('").append(object.getString("roomId"));
+                            stringBuilder.append("', '', '', '");
+                            stringBuilder.append(object.getString("roomGubun")).append("')");
+                            dbHelper.edit(stringBuilder.toString());
+
+                            preferences = getSharedPreferences("update", 0);
+                            editor = preferences.edit();
+                            editor.putString("room", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()));
+                            editor.commit();
+                        }
+
+                        jsonArray = new JSONArray(jsonObject.getString("roommate"));
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            object = jsonArray.getJSONObject(i);
+                            StringBuilder stringBuilder = new StringBuilder();
+                            stringBuilder.append("INSERT INTO roommate VALUES(null, ");
+                            stringBuilder.append(object.getString("roomId")).append(", '");
+                            stringBuilder.append(object.getString("userId")).append("')");
+                            dbHelper.edit(stringBuilder.toString());
+
+                            preferences = getSharedPreferences("update", 0);
+                            editor = preferences.edit();
+                            editor.putString("roommate", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()));
+                            editor.commit();
+                        }
+                        jsonArray = new JSONArray(jsonObject.getString("chat"));
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            object = jsonArray.getJSONObject(i);
+                            StringBuilder stringBuilder = new StringBuilder();
+                            stringBuilder.append("INSERT INTO chat VALUES(null, ");
+                            stringBuilder.append(object.getString("chatNo")).append(", ");
+                            stringBuilder.append(object.getString("roomId")).append(", '");
+                            stringBuilder.append(object.getString("userId")).append("', '");
+                            stringBuilder.append(object.getString("gubun")).append("', '");
+                            stringBuilder.append(object.getString("message")).append("', ");
+                            stringBuilder.append(object.getString("readed")).append(")");
                             dbHelper.edit(stringBuilder.toString());
 
                             preferences = getSharedPreferences("chatNo", 0);
                             editor = preferences.edit();
-                            editor.putInt(chat.getString("roomId"), chat.getInt("chatNo"));
+                            editor.putInt(object.getString("roomId"), 0);
+                            editor.commit();
+                            preferences = getSharedPreferences("update", 0);
+                            editor = preferences.edit();
+                            editor.putString("chat", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()));
                             editor.commit();
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    preferences = getSharedPreferences("update", 0);
-                    editor = preferences.edit();
-                    editor.putString("chat", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()));
-                    editor.commit();
 
                     Intent intent = new Intent(LoginActivity.this, MenuActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);

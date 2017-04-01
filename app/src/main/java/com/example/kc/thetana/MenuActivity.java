@@ -30,6 +30,7 @@ import android.widget.Toast;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -40,7 +41,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Locale;
 
 /**
@@ -85,7 +88,8 @@ public class MenuActivity extends AppCompatActivity {
         RoomAdapter roomAdapter = new RoomAdapter();
         Button bt_logout;
         SharedPreferences preferences;
-        GlobalClass globalClass;
+        private ArrayList<FriendGroup> friendGroup = new ArrayList<FriendGroup>();
+        private ArrayList<RoomItem> roomItems = new ArrayList<RoomItem>();
 
         public PlaceholderFragment() {
         }
@@ -134,9 +138,6 @@ public class MenuActivity extends AppCompatActivity {
                 return true;
             }
             if (id == R.id.frinend_action_set) {
-                globalClass = new GlobalClass(context);
-                globalClass.updateFriends();
-                friendExpandableAdapter.setGroup(globalClass.getFriends());
                 return true;
             }
             if (id == R.id.room_action_addRoom) {
@@ -153,18 +154,76 @@ public class MenuActivity extends AppCompatActivity {
             super.onStart();
 
             if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
-                globalClass = new GlobalClass(context);
-                globalClass.updateFriends();
-                friendExpandableAdapter.setGroup(globalClass.getFriends());
                 for (int i = 0; i < friendExpandableAdapter.getGroupCount(); i++) {
                     elv.expandGroup(i);
                 }
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
-                globalClass = new GlobalClass(context);
-                globalClass.updateRooms();
-                roomAdapter.setItem(globalClass.getRooms());
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
+            }
+        }
 
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            context = activity;
+
+            if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
+                friendGroup.add(new FriendGroup("프로필"));
+                friendGroup.add(new FriendGroup("즐겨찾기"));
+                friendGroup.add(new FriendGroup("친구"));
+
+                preferences = context.getSharedPreferences("user", 0);
+                friendGroup.get(0).friendChildren.add(new FriendChild());
+                friendGroup.get(0).friendChildren.get(0).id = preferences.getString("id", "");
+                friendGroup.get(0).friendChildren.get(0).name = preferences.getString("name", "");
+                friendGroup.get(0).friendChildren.get(0).state = preferences.getString("stateMessage", "");
+
+                try {
+                    JSONObject jsonObject = dbHelper.getFriend("");
+                    JSONArray jsonArray = jsonObject.getJSONArray("friend");
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject object = jsonArray.getJSONObject(i);
+                        String friendId = object.getString("friendId");
+                        String bookmark = object.getString("bookmark");
+                        String userName = object.getString("userName");
+                        String stateMessage = object.getString("stateMessage");
+                        String roomId = object.getString("roomId");
+
+                        FriendChild friendChild = new FriendChild();
+                        friendChild.id = friendId;
+                        friendChild.name = userName;
+                        friendChild.state = stateMessage;
+                        friendChild.roomId = roomId;
+
+                        friendGroup.get(2).friendChildren.add(friendChild);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                friendExpandableAdapter.setGroup(friendGroup);
+            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
+                try {
+                    JSONObject jsonObject = dbHelper.getRoom("");
+                    JSONArray jsonArray = jsonObject.getJSONArray("room");
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject object = jsonArray.getJSONObject(i);
+                        String roomId = object.getString("roomId");
+                        String subTitle = object.getString("subTitle");
+                        String roomGubun = object.getString("roomGubun");
+                        String roomName = object.getString("roomName");
+
+                        RoomItem roomItem = new RoomItem();
+                        roomItem.id = roomId;
+                        roomItem.gubun = roomGubun;
+                        roomItem.name = roomName;
+
+                        roomItems.add(roomItem);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                roomAdapter.setItem(roomItems);
+            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
             }
         }
 
@@ -175,9 +234,6 @@ public class MenuActivity extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_friend, container, false);
 
             if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
-                globalClass = new GlobalClass(context);
-                globalClass.updateFriends();
-                friendExpandableAdapter.setGroup(globalClass.getFriends());
 
                 rootView = inflater.inflate(R.layout.fragment_friend, container, false);
                 elv = (ExpandableListView) rootView.findViewById(R.id.elv);
@@ -208,9 +264,6 @@ public class MenuActivity extends AppCompatActivity {
                 });
 
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
-                globalClass = new GlobalClass(context);
-                globalClass.updateRooms();
-                roomAdapter.setItem(globalClass.getRooms());
                 rootView = inflater.inflate(R.layout.fragment_room, container, false);
                 lv_room = (ListView) rootView.findViewById(R.id.room_lv_room);
                 lv_room.setAdapter(roomAdapter);
@@ -234,7 +287,10 @@ public class MenuActivity extends AppCompatActivity {
                     public void onClick(View v) {
                         logout(container.getContext().getSharedPreferences("user", 0).getString("id", ""));
 
-                        dbHelper.edit("DELETE FROM chat;");
+                        dbHelper.edit("DROP TABLE friend;");
+                        dbHelper.edit("DROP TABLE room;");
+                        dbHelper.edit("DROP TABLE roommate;");
+                        dbHelper.edit("DROP TABLE chat;");
 
                         preferences = container.getContext().getSharedPreferences("user", 0);
                         SharedPreferences.Editor editor = preferences.edit();
@@ -251,6 +307,16 @@ public class MenuActivity extends AppCompatActivity {
                         editor.clear();
                         editor.commit();
 
+                        preferences = container.getContext().getSharedPreferences("chatNo", 0);
+                        editor = preferences.edit();
+                        editor.clear();
+                        editor.commit();
+
+                        preferences = container.getContext().getSharedPreferences("update", 0);
+                        editor = preferences.edit();
+                        editor.clear();
+                        editor.commit();
+
                         Intent intent = new Intent(container.getContext(), LoginActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
@@ -260,10 +326,6 @@ public class MenuActivity extends AppCompatActivity {
             }
             return rootView;
         }
-
-
-
-
 
         private void logout(String id) {
             class GetDataJSON extends AsyncTask<String, Void, String> {

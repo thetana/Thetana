@@ -572,19 +572,14 @@ public class ChatFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
-    }
-
-    public interface OnFragmentInteractionListener {
-        public void onFragmentInteraction(Uri uri);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
         try {
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public interface OnFragmentInteractionListener {
+        public void onFragmentInteraction(Uri uri);
     }
 }

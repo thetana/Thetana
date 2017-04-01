@@ -40,12 +40,12 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if (remoteMessage.getNotification() != null) {
             Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
         }
-        dbHelper.edit("INSERT INTO chat"
-                + " VALUES(null, '" + data.get("message") + "', '"
-                + data.get("userId") + "', '"
-                + data.get("roomId") + "', '"
-                + data.get("gubun") + "', '"
-                + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()) + "');");
+//        dbHelper.edit("INSERT INTO chat"
+//                + " VALUES(null, '" + data.get("message") + "', '"
+//                + data.get("userId") + "', '"
+//                + data.get("roomId") + "', '"
+//                + data.get("gubun") + "', '"
+//                + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()) + "');");
 
         ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         ComponentName componentName = activityManager.getRunningTasks(1).get(0).topActivity;

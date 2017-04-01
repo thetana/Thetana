@@ -21,7 +21,10 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE chat (chatId INTEGER PRIMARY KEY, chatNo INTEGER, roomId INTEGER, userId TEXT, gubun TEXT, readed INTEGER, gubun TEXT, insertDt TEXT, updateDt TEXT);");
+//        db.execSQL("CREATE TABLE friend (friendNo INTEGER PRIMARY KEY AUTOINCREMENT, friendId TEXT, bookmark TEXT, friendName TEXT, userName TEXT, stateMessage TEXT, phoneNumber TEXT, profilePicture TEXT, backgroundPhoto TEXT);");
+//        db.execSQL("CREATE TABLE room (roomId INTEGER PRIMARY KEY, title TEXT, subTitle TEXT, roomGubun TEXT);");
+//        db.execSQL("CREATE TABLE roommate (roommateId INTEGER PRIMARY KEY AUTOINCREMENT, roomId INTEGER, userId TEXT);");
+//        db.execSQL("CREATE TABLE chat (chatId INTEGER PRIMARY KEY AUTOINCREMENT, chatNo INTEGER, roomId INTEGER, userId TEXT, gubun TEXT, message TEXT, readed INTEGER);");
     }
 
     @Override
@@ -34,26 +37,86 @@ public class DBHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    public JSONObject getFriend(String friendName) {
+        SQLiteDatabase db = getReadableDatabase();
+
+        JSONObject jsonObject = new JSONObject();
+        JSONArray array = new JSONArray();
+
+        Cursor cursor = db.rawQuery("SELECT A.friendId, A.bookmark, A.friendName, A.userName, A.stateMessage, A.phoneNumber, A.profilePicture, A.backgroundPhoto, B.roomId FROM friend A LEFT JOIN roommate B ON A.friendId = B.userId WHERE B.roomId in(SELECT roomId FROM room WHERE roomGubun = 'PtoP') AND A.friendName like '%" + friendName + "%'", null);
+        int i = 0;
+        try {
+            while (cursor.moveToNext()) {
+                JSONObject object = new JSONObject();
+                object.put("friendId", cursor.getString(0));
+                object.put("bookmark", cursor.getString(1));
+                object.put("friendName", cursor.getString(2));
+                object.put("userName", cursor.getString(3));
+                object.put("stateMessage", cursor.getString(4));
+                object.put("phoneNumber", cursor.getString(5));
+                object.put("profilePicture", cursor.getString(6));
+                object.put("backgroundPhoto", cursor.getString(7));
+                object.put("roomId", cursor.getString(8));
+                array.put(i, object);
+                i++;
+            }
+            jsonObject.put("friend", array);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return jsonObject;
+    }
+    public JSONObject getRoom(String title) {
+        SQLiteDatabase db = getReadableDatabase();
+
+        JSONObject jsonObject = new JSONObject();
+        JSONArray array = new JSONArray();
+
+        Cursor cursor = db.rawQuery("SELECT roomId, subTitle, roomGubun FROM room", null);
+        int i = 0;
+        try {
+            while (cursor.moveToNext()) {
+                Cursor cursor1 = db.rawQuery("SELECT B.friendName FROM roommate A JOIN friend B ON A.userId = B.friendId WHERE A.roomId = " + cursor.getString(0), null);
+                String roomName = "";
+                while (cursor1.moveToNext()) {
+                    roomName = roomName + "," + cursor1.getString(0);
+                }
+                roomName = roomName.substring(1);
+
+                JSONObject object = new JSONObject();
+                object.put("roomId", cursor.getString(0));
+                object.put("subTitle", cursor.getString(1));
+                object.put("roomGubun", cursor.getString(2));
+                object.put("roomName", roomName);
+                array.put(i, object);
+                i++;
+            }
+            jsonObject.put("room", array);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return jsonObject;
+    }
+
     public JSONObject getChat(String roomId) {
         SQLiteDatabase db = getReadableDatabase();
 
         JSONObject jsonObject = new JSONObject();
         JSONArray array = new JSONArray();
 
-        Cursor cursor = db.rawQuery("SELECT chatId, chatNo, roomId, userId, gubun, message, readed, insertDt, updateDt FROM chat where roomId = '" + roomId + "'", null);
+        Cursor cursor = db.rawQuery("SELECT chatNo, roomId, userId, gubun, message, readed FROM chat where roomId = '" + roomId + "'", null);
         int i = 0;
         try {
             while (cursor.moveToNext()) {
                 JSONObject object = new JSONObject();
-                object.put("chatId", cursor.getInt(0));
-                object.put("chatNo", cursor.getInt(1));
-                object.put("roomId", cursor.getInt(2));
-                object.put("userId", cursor.getString(3));
-                object.put("gubun", cursor.getString(4));
-                object.put("message", cursor.getString(5));
-                object.put("readed", cursor.getInt(6));
-                object.put("insertDt", cursor.getString(7));
-                object.put("updateDt", cursor.getString(8));
+                object.put("chatNo", cursor.getInt(0));
+                object.put("roomId", cursor.getInt(1));
+                object.put("userId", cursor.getString(2));
+                object.put("gubun", cursor.getString(3));
+                object.put("message", cursor.getString(4));
+                object.put("readed", cursor.getInt(5));
                 array.put(i, object);
                 i++;
             }

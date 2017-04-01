@@ -69,7 +69,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
     public void read(String chatNo){
         for(int i = mHashtable.get(chatNo); i < mMessages.size(); i++){
-            mMessages.get(mHashtable.get(i)).mNumber--;
+            mMessages.get(i).mNumber--;
         }
     }
 
