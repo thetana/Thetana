@@ -25,9 +25,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.ListView;
-import android.widget.Toast;
 
-import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONArray;
@@ -43,7 +41,6 @@ import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Locale;
 
 /**
@@ -57,6 +54,7 @@ public class MenuActivity extends AppCompatActivity {
     static Context context;
     Menu myMenu;
     static DBHelper dbHelper;
+    static String myId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +64,7 @@ public class MenuActivity extends AppCompatActivity {
         FirebaseMessaging.getInstance().subscribeToTopic("news");
 
         context = MenuActivity.this;
+        myId = getSharedPreferences("user", 0).getString("id", "");
         //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         //setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
@@ -120,7 +119,7 @@ public class MenuActivity extends AppCompatActivity {
             if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
                 inflater.inflate(R.menu.menu_main, menu);
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
-                inflater.inflate(R.menu.menu_chat, menu);
+                inflater.inflate(R.menu.menu_room, menu);
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
                 //inflater.inflate(R.menu.menu_main, menu);
             }
@@ -142,6 +141,8 @@ public class MenuActivity extends AppCompatActivity {
             }
             if (id == R.id.room_action_addRoom) {
                 Intent intent = new Intent(myContext, InviteActivity.class);
+                intent.putExtra("roomId", "0");
+                intent.putExtra("roomGubun", "Multi");
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                 startActivity(intent);
                 return true;
@@ -154,20 +155,7 @@ public class MenuActivity extends AppCompatActivity {
             super.onStart();
 
             if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
-                for (int i = 0; i < friendExpandableAdapter.getGroupCount(); i++) {
-                    elv.expandGroup(i);
-                }
-            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
-            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
-            }
-        }
-
-        @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            context = activity;
-
-            if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
+                friendGroup = new ArrayList<FriendGroup>();
                 friendGroup.add(new FriendGroup("프로필"));
                 friendGroup.add(new FriendGroup("즐겨찾기"));
                 friendGroup.add(new FriendGroup("친구"));
@@ -185,13 +173,13 @@ public class MenuActivity extends AppCompatActivity {
                         JSONObject object = jsonArray.getJSONObject(i);
                         String friendId = object.getString("friendId");
                         String bookmark = object.getString("bookmark");
-                        String userName = object.getString("userName");
+                        String friendName = object.getString("friendName");
                         String stateMessage = object.getString("stateMessage");
                         String roomId = object.getString("roomId");
 
                         FriendChild friendChild = new FriendChild();
                         friendChild.id = friendId;
-                        friendChild.name = userName;
+                        friendChild.name = friendName;
                         friendChild.state = stateMessage;
                         friendChild.roomId = roomId;
 
@@ -201,30 +189,19 @@ public class MenuActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 friendExpandableAdapter.setGroup(friendGroup);
-            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
-                try {
-                    JSONObject jsonObject = dbHelper.getRoom("");
-                    JSONArray jsonArray = jsonObject.getJSONArray("room");
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject object = jsonArray.getJSONObject(i);
-                        String roomId = object.getString("roomId");
-                        String subTitle = object.getString("subTitle");
-                        String roomGubun = object.getString("roomGubun");
-                        String roomName = object.getString("roomName");
-
-                        RoomItem roomItem = new RoomItem();
-                        roomItem.id = roomId;
-                        roomItem.gubun = roomGubun;
-                        roomItem.name = roomName;
-
-                        roomItems.add(roomItem);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                for (int i = 0; i < friendExpandableAdapter.getGroupCount(); i++) {
+                    elv.expandGroup(i);
                 }
-                roomAdapter.setItem(roomItems);
+            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
+                getRoom();
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
             }
+        }
+
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            context = activity;
         }
 
         @Override
@@ -239,10 +216,6 @@ public class MenuActivity extends AppCompatActivity {
                 elv = (ExpandableListView) rootView.findViewById(R.id.elv);
                 elv.setAdapter(friendExpandableAdapter);
                 //friendExpandableAdapter.setGroup(globalClass.getFriends());
-
-//                for (int i = 0; i < friendExpandableAdapter.getGroupCount(); i++) {
-//                    elv.expandGroup(i);
-//                }
 
                 elv.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
                     @Override
@@ -275,6 +248,7 @@ public class MenuActivity extends AppCompatActivity {
 
                         intent.putExtra("roomId", roomItem.id);
                         intent.putExtra("roomGubun", roomItem.gubun);
+                        intent.putExtra("isJoin", "N");
 
                         startActivity(intent);
                     }
@@ -319,12 +293,118 @@ public class MenuActivity extends AppCompatActivity {
 
                         Intent intent = new Intent(container.getContext(), LoginActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(intent);
                     }
                 });
             }
             return rootView;
+        }
+
+        private void getRoom() {
+
+            class getData extends AsyncTask<String, Void, String> {
+                ProgressDialog loading;
+                DBHelper dbHelper = new DBHelper(context, "thetana.db", null, 1);
+
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    loading = ProgressDialog.show(context, "Please Wait", null, true, true);
+                }
+
+                @Override
+                protected void onPostExecute(String s) {
+                    super.onPostExecute(s);
+                    loading.dismiss();
+
+                    JSONObject jsonObject = null;
+                    JSONObject object = null;
+                    JSONArray jsonArray = null;
+
+                    try {
+                        jsonObject = new JSONObject(s);
+
+                        jsonArray = new JSONArray(jsonObject.getString("room"));
+                        dbHelper.edit("DELETE FROM room;");
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            object = jsonArray.getJSONObject(i);
+                            StringBuilder stringBuilder = new StringBuilder();
+                            stringBuilder.append("INSERT INTO room VALUES(").append(object.getString("roomId")).append(", '");
+                            stringBuilder.append(object.getString("title")).append("', '");
+                            stringBuilder.append(object.getString("subTitle")).append("', '");
+                            stringBuilder.append(object.getString("roomGubun")).append("')");
+                            dbHelper.edit(stringBuilder.toString());
+                        }
+
+                        jsonArray = new JSONArray(jsonObject.getString("roommate"));
+                        dbHelper.edit("DELETE FROM roommate;");
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            object = jsonArray.getJSONObject(i);
+                            StringBuilder stringBuilder = new StringBuilder();
+                            stringBuilder.append("INSERT INTO roommate VALUES(null, ");
+                            stringBuilder.append(object.getString("roomId")).append(", '");
+                            stringBuilder.append(object.getString("userId")).append("', '");
+                            stringBuilder.append(object.getString("userName")).append("', '");
+                            stringBuilder.append(object.getString("stateMessage")).append("', '");
+                            stringBuilder.append(object.getString("profilePicture")).append("', '");
+                            stringBuilder.append(object.getString("backgroundPhoto")).append("')");
+                            dbHelper.edit(stringBuilder.toString());
+                        }
+
+                        jsonObject = dbHelper.getRoom("");
+                        jsonArray = jsonObject.getJSONArray("room");
+                        roomItems = new ArrayList<RoomItem>();
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            object = jsonArray.getJSONObject(i);
+                            String roomId = object.getString("roomId");
+                            String subTitle = object.getString("subTitle");
+                            String roomGubun = object.getString("roomGubun");
+                            String roomName = object.getString("roomName");
+
+                            RoomItem roomItem = new RoomItem();
+                            roomItem.id = roomId;
+                            roomItem.gubun = roomGubun;
+                            roomItem.name = roomName;
+
+                            roomItems.add(roomItem);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    roomAdapter.setItem(roomItems);
+                }
+
+                @Override
+                protected String doInBackground(String... params) {
+                    try {
+                        String link = context.getString(R.string.ip) + "getRoom.php";
+                        String data = URLEncoder.encode("userId", "UTF-8") + "=" + URLEncoder.encode(myId, "UTF-8");
+
+                        URL url = new URL(link);
+                        URLConnection conn = url.openConnection();
+
+                        conn.setDoOutput(true);
+                        OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+
+                        wr.write(data);
+                        wr.flush();
+
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+                        StringBuilder sb = new StringBuilder();
+                        String json;
+                        while ((json = reader.readLine()) != null) {
+                            sb.append(json + "\n");
+                        }
+                        return sb.toString();
+                    } catch (Exception e) {
+                        return new String("Exception: " + e.getMessage());
+                    }
+                }
+            }
+            getData task = new getData();
+            task.execute();
         }
 
         private void logout(String id) {
@@ -335,12 +415,12 @@ public class MenuActivity extends AppCompatActivity {
                 @Override
                 protected void onPreExecute() {
                     super.onPreExecute();
-                    loading = ProgressDialog.show(context, "Please Wait", null, true, true);
+                    //loading = ProgressDialog.show(context, "Please Wait", null, true, true);
                 }
 
                 @Override
                 protected void onPostExecute(String myJSON) {
-                    loading.dismiss();
+                    //loading.dismiss();
                 }
 
                 @Override

@@ -55,6 +55,7 @@ public class ProfileActivity extends AppCompatActivity {
                 intent.putExtra("id", id);
                 intent.putExtra("roomId", roomId);
                 intent.putExtra("roomGubun", "PtoP");
+                intent.putExtra("isJoin", "N");
 
                 startActivity(intent);
             }

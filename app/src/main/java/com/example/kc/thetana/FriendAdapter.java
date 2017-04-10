@@ -2,7 +2,6 @@ package com.example.kc.thetana;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.view.LayoutInflater;
@@ -10,9 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -20,25 +22,29 @@ import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by kc on 2017-02-18.
  */
 
-public class FriendAdapter extends BaseAdapter{
+public class FriendAdapter extends BaseAdapter {
 
-    private ArrayList<FriendItem> friendItems = new ArrayList<FriendItem>() ;
+    private ArrayList<FriendItem> friendItems = new ArrayList<FriendItem>();
     TextView tv_name;
     Button bt_add;
     SharedPreferences preferences;
     GlobalClass globalClass;
 
-    public void addItem(ArrayList<FriendItem> itme ){
+    public void addItem(ArrayList<FriendItem> itme) {
         friendItems = itme;
         notifyDataSetChanged();
     }
-    public void addItem(FriendItem itme ){
+
+    public void addItem(FriendItem itme) {
         FriendItem friendItem = itme;
 
         friendItems.add(friendItem);
@@ -88,6 +94,7 @@ public class FriendAdapter extends BaseAdapter{
 
         class InsertData extends AsyncTask<String, Void, String> {
             ProgressDialog loading;
+            DBHelper dbHelper = new DBHelper(context, "thetana.db", null, 1);
 
             @Override
             protected void onPreExecute() {
@@ -99,20 +106,44 @@ public class FriendAdapter extends BaseAdapter{
             protected void onPostExecute(String s) {
                 super.onPostExecute(s);
                 loading.dismiss();
-                if (s.equals("success")) {
-                    friendItems.remove(position);
-                    notifyDataSetChanged();
-                    globalClass = new GlobalClass(context);
-                    globalClass.updateFriends();
+
+                JSONObject jsonObject = null;
+                JSONObject object = null;
+                JSONArray jsonArray = null;
+
+                try {
+                    jsonObject = new JSONObject(s);
+                    if (jsonObject.getString("success").equals("success")) {
+                        jsonArray = new JSONArray(jsonObject.getString("friend"));
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            object = jsonArray.getJSONObject(i);
+                            StringBuilder stringBuilder = new StringBuilder();
+                            stringBuilder.append("INSERT INTO friend VALUES(null, '");
+                            stringBuilder.append(object.getString("friendId")).append("', '");
+                            stringBuilder.append(object.getString("bookmark")).append("', '");
+                            stringBuilder.append(object.getString("friendName")).append("', '");
+                            stringBuilder.append(object.getString("userName")).append("', '");
+                            stringBuilder.append(object.getString("stateMessage")).append("', '");
+                            stringBuilder.append(object.getString("phoneNumber")).append("', '");
+                            stringBuilder.append(object.getString("profilePicture")).append("', '");
+                            stringBuilder.append(object.getString("backgroundPhoto")).append("')");
+                            dbHelper.edit(stringBuilder.toString());
+                        }
+
+                        friendItems.remove(position);
+                        notifyDataSetChanged();
+                        Toast.makeText(context, jsonObject.getString("success"), Toast.LENGTH_LONG).show();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-                Toast.makeText(context, s, Toast.LENGTH_LONG).show();
             }
 
             @Override
-                    protected String doInBackground(String... params) {
+            protected String doInBackground(String... params) {
 
-                        try {
-                            preferences = context.getSharedPreferences("user", 0);
+                try {
+                    preferences = context.getSharedPreferences("user", 0);
 
                     String userId = preferences.getString("id", "");
                     String friendId = (String) params[0];
@@ -133,12 +164,9 @@ public class FriendAdapter extends BaseAdapter{
                     BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 
                     StringBuilder sb = new StringBuilder();
-                    String line = null;
-
-                    // Read Server Response
-                    while ((line = reader.readLine()) != null) {
-                        sb.append(line);
-                        break;
+                    String json;
+                    while ((json = reader.readLine()) != null) {
+                        sb.append(json + "\n");
                     }
                     return sb.toString();
                 } catch (Exception e) {

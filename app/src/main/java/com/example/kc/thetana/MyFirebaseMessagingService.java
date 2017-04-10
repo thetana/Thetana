@@ -40,12 +40,15 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if (remoteMessage.getNotification() != null) {
             Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
         }
-//        dbHelper.edit("INSERT INTO chat"
-//                + " VALUES(null, '" + data.get("message") + "', '"
-//                + data.get("userId") + "', '"
-//                + data.get("roomId") + "', '"
-//                + data.get("gubun") + "', '"
-//                + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()) + "');");
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("INSERT INTO chat VALUES(null, ");
+        stringBuilder.append(data.get("chatNo")).append(", ");
+        stringBuilder.append(data.get("roomId")).append(", '");
+        stringBuilder.append(data.get("userId")).append("', '");
+        stringBuilder.append(data.get("gubun")).append("', '");
+        stringBuilder.append(data.get("message" )).append("')");
+        dbHelper.edit(stringBuilder.toString());
 
         ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         ComponentName componentName = activityManager.getRunningTasks(1).get(0).topActivity;
@@ -62,7 +65,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_stat_ic_notification)
-                .setContentTitle(messageBody.get("title"))
+                .setContentTitle(dbHelper.getRoommateName(messageBody.get("userId")))
                 .setContentText(messageBody.get("message"))
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)

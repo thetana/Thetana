@@ -1,6 +1,5 @@
 package com.example.kc.thetana;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -9,21 +8,30 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.Hashtable;
+import java.util.ArrayList;
 import java.util.List;
 
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
 
     private List<Message> mMessages;
-    private Hashtable<String, Integer> mHashtable = new Hashtable<String, Integer>();
+    private ArrayList<Roommate> roommateList = new ArrayList<Roommate>();
     private int[] mUsernameColors;
 
-    public MessageAdapter(List<Message> messages, Hashtable<String, Integer> hashtable) {
+    public MessageAdapter(List<Message> messages, ArrayList<Roommate> roommate) {
         mMessages = messages;
-        mHashtable = hashtable;
+        roommateList = roommate;
+        this.notifyDataSetChanged();
+
         //  mUsernameColors = context.getResources().getIntArray(R.array.username_colors);
     }
+
+    public void clearList() {
+        mMessages.clear();
+        this.notifyDataSetChanged();
+    }
+
+
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -53,7 +61,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         Message message = mMessages.get(position);
         viewHolder.setMessage(message.getMessage());
         viewHolder.setName(message.getUser());
-        viewHolder.setNumber(message.getNumber());
+        viewHolder.setNumber(Integer.parseInt(message.getChatNo()));
         viewHolder.setImage(message.getImage());
     }
 
@@ -67,17 +75,20 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         return mMessages.get(position).getType();
     }
 
-    public void read(String chatNo){
-        for(int i = mHashtable.get(chatNo); i < mMessages.size(); i++){
-            mMessages.get(i).mNumber--;
-        }
-    }
+//    public void read(String chatNo) {
+//        if (mHashtable.get(chatNo) != null && mHashtable.get(chatNo) > 0) {
+//            for (int i = mHashtable.get(chatNo); i < mMessages.size(); i++) {
+//                mMessages.get(i).mNumber--;
+//            }
+//        }
+//    }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         private ImageView mImageView;
         private TextView tv_name;
         private TextView tv_message;
         private TextView tv_number;
+
         public ViewHolder(View itemView, int viewType) {
             super(itemView);
             switch (viewType) {
@@ -102,24 +113,38 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
         public void setMessage(String message) {
             if (null == tv_message) return;
-            if(null == message) return;
+            if (null == message) return;
             tv_message.setText(message);
         }
+
         public void setName(String name) {
             if (null == tv_name) return;
-            if(null == name) return;
+            if (null == name) return;
             tv_name.setText(name);
         }
-        public void setNumber(int number) {
+
+        public void setNumber(Integer chatNo) {
             if (null == tv_number) return;
-            if(1 > number) return;
-            tv_number.setText(String.valueOf(number));
+            else {
+                int number = 0;
+                for (int i = 0; i < roommateList.size(); i++) {
+                    if (!roommateList.get(i).onOff) {
+                        if (roommateList.get(i).chatNo < chatNo) {
+                            number++;
+                        }
+                    }
+                }
+                if (1 > number) tv_number.setText("");
+                else tv_number.setText(String.valueOf(number));
+            }
         }
-        public void setImage(Bitmap bmp){
-            if(null == mImageView) return;
-            if(null == bmp) return;
+
+        public void setImage(Bitmap bmp) {
+            if (null == mImageView) return;
+            if (null == bmp) return;
             mImageView.setImageBitmap(bmp);
         }
+
         private int getUsernameColor(String username) {
             int hash = 7;
             for (int i = 0, len = username.length(); i < len; i++) {

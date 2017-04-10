@@ -189,7 +189,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
         class GetDataJSON extends AsyncTask<String, Void, String> {
             ProgressDialog loading;
-            GlobalClass globalClass;
 
             @Override
             protected void onPreExecute() {
@@ -207,6 +206,9 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 String id = "";
                 String name = "";
                 String stateMessage = "";
+                String phoneNumber = "";
+                String profilePicture = "";
+                String backgroundPhoto = "";
 
                 try {
                     jsonObject = new JSONObject(myJSON);
@@ -216,6 +218,9 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     id = object.getString("id");
                     name = object.getString("name");
                     stateMessage = object.getString("stateMessage");
+                    phoneNumber = object.getString("phoneNumber");
+                    profilePicture = object.getString("profilePicture");
+                    backgroundPhoto = object.getString("backgroundPhoto");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -226,18 +231,18 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     editor.putString("id", id);
                     editor.putString("name", name);
                     editor.putString("stateMessage", stateMessage);
+                    editor.putString("phoneNumber", phoneNumber);
+                    editor.putString("profilePicture", profilePicture);
+                    editor.putString("backgroundPhoto", backgroundPhoto);
                     editor.putString("token", token);
                     editor.commit();
 
-                    globalClass = new GlobalClass(context);
-                    globalClass.updateFriends();
+                    dbHelper.edit("CREATE TABLE friend (friendNo INTEGER PRIMARY KEY AUTOINCREMENT, friendId TEXT, bookmark TEXT, friendName TEXT, userName TEXT, stateMessage TEXT, phoneNumber TEXT, profilePicture TEXT, backgroundPhoto TEXT);");
+                    dbHelper.edit("CREATE TABLE room (roomId INTEGER PRIMARY KEY, title TEXT, subTitle TEXT, roomGubun TEXT);");
+                    dbHelper.edit("CREATE TABLE roommate (roommateId INTEGER PRIMARY KEY AUTOINCREMENT, roomId INTEGER, userId TEXT, userName TEXT, stateMessage TEXT, profilePicture TEXT, backgroundPhoto TEXT);");
+                    dbHelper.edit("CREATE TABLE chat (chatId INTEGER PRIMARY KEY AUTOINCREMENT, chatNo INTEGER, roomId INTEGER, userId TEXT, gubun TEXT, message TEXT);");
 
                     try {
-                        dbHelper.edit("CREATE TABLE friend (friendNo INTEGER PRIMARY KEY AUTOINCREMENT, friendId TEXT, bookmark TEXT, friendName TEXT, userName TEXT, stateMessage TEXT, phoneNumber TEXT, profilePicture TEXT, backgroundPhoto TEXT);");
-                        dbHelper.edit("CREATE TABLE room (roomId INTEGER PRIMARY KEY, title TEXT, subTitle TEXT, roomGubun TEXT);");
-                        dbHelper.edit("CREATE TABLE roommate (roommateId INTEGER PRIMARY KEY AUTOINCREMENT, roomId INTEGER, userId TEXT);");
-                        dbHelper.edit("CREATE TABLE chat (chatId INTEGER PRIMARY KEY AUTOINCREMENT, chatNo INTEGER, roomId INTEGER, userId TEXT, gubun TEXT, message TEXT, readed INTEGER);");
-
                         jsonArray = new JSONArray(jsonObject.getString("friend"));
                         for (int i = 0; i < jsonArray.length(); i++) {
                             object = jsonArray.getJSONObject(i);
@@ -252,26 +257,17 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                             stringBuilder.append(object.getString("profilePicture")).append("', '");
                             stringBuilder.append(object.getString("backgroundPhoto")).append("')");
                             dbHelper.edit(stringBuilder.toString());
-
-                            preferences = getSharedPreferences("update", 0);
-                            editor = preferences.edit();
-                            editor.putString("friend", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()));
-                            editor.commit();
                         }
 
                         jsonArray = new JSONArray(jsonObject.getString("room"));
                         for (int i = 0; i < jsonArray.length(); i++) {
                             object = jsonArray.getJSONObject(i);
                             StringBuilder stringBuilder = new StringBuilder();
-                            stringBuilder.append("INSERT INTO room VALUES('").append(object.getString("roomId"));
-                            stringBuilder.append("', '', '', '");
+                            stringBuilder.append("INSERT INTO room VALUES(").append(object.getString("roomId")).append(", '");
+                            stringBuilder.append(object.getString("title")).append("', '");
+                            stringBuilder.append(object.getString("subTitle")).append("', '");
                             stringBuilder.append(object.getString("roomGubun")).append("')");
                             dbHelper.edit(stringBuilder.toString());
-
-                            preferences = getSharedPreferences("update", 0);
-                            editor = preferences.edit();
-                            editor.putString("room", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()));
-                            editor.commit();
                         }
 
                         jsonArray = new JSONArray(jsonObject.getString("roommate"));
@@ -280,13 +276,13 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                             StringBuilder stringBuilder = new StringBuilder();
                             stringBuilder.append("INSERT INTO roommate VALUES(null, ");
                             stringBuilder.append(object.getString("roomId")).append(", '");
-                            stringBuilder.append(object.getString("userId")).append("')");
+                            stringBuilder.append(object.getString("userId")).append("', '");
+                            stringBuilder.append(object.getString("userName")).append("', '");
+                            stringBuilder.append(object.getString("stateMessage")).append("', '");
+                            stringBuilder.append(object.getString("profilePicture")).append("', '");
+                            stringBuilder.append(object.getString("backgroundPhoto")).append("')");
                             dbHelper.edit(stringBuilder.toString());
 
-                            preferences = getSharedPreferences("update", 0);
-                            editor = preferences.edit();
-                            editor.putString("roommate", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()));
-                            editor.commit();
                         }
                         jsonArray = new JSONArray(jsonObject.getString("chat"));
                         for (int i = 0; i < jsonArray.length(); i++) {
@@ -297,17 +293,12 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                             stringBuilder.append(object.getString("roomId")).append(", '");
                             stringBuilder.append(object.getString("userId")).append("', '");
                             stringBuilder.append(object.getString("gubun")).append("', '");
-                            stringBuilder.append(object.getString("message")).append("', ");
-                            stringBuilder.append(object.getString("readed")).append(")");
+                            stringBuilder.append(object.getString("message")).append("')");
                             dbHelper.edit(stringBuilder.toString());
 
                             preferences = getSharedPreferences("chatNo", 0);
                             editor = preferences.edit();
                             editor.putInt(object.getString("roomId"), 0);
-                            editor.commit();
-                            preferences = getSharedPreferences("update", 0);
-                            editor = preferences.edit();
-                            editor.putString("chat", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA).format(new Date()));
                             editor.commit();
                         }
                     } catch (JSONException e) {

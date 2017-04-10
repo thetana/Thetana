@@ -3,6 +3,7 @@ package com.example.kc.thetana;
 import android.os.Bundle;
 import android.os.Handler;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
@@ -21,7 +22,6 @@ public class ChatThread extends Thread {
     public ChatThread(Handler handler, Socket socket) {
         this.socket = socket;
         this.handler = handler;
-
         try {
             in = new DataInputStream(this.socket.getInputStream());
         } catch (Exception e) {
@@ -35,20 +35,21 @@ public class ChatThread extends Thread {
             while (in != null) {
                 String msg = in.readUTF();
                 JSONObject jsonObject = new JSONObject(msg);
-
-                android.os.Message message = new android.os.Message();
+                android.os.Message  message = new android.os.Message();
                 Bundle bundle = new Bundle();
-
                 bundle.putString("order", jsonObject.getString("order"));
                 if (jsonObject.getString("order").equals("sendMsg")) {
                     bundle.putString("user", jsonObject.getString("user"));
                     bundle.putString("msg", jsonObject.getString("msg"));
                     bundle.putString("room", jsonObject.getString("room"));
                     bundle.putString("chatNo", jsonObject.getString("chatNo"));
-                    bundle.putInt("readed", jsonObject.getInt("readed"));
                     bundle.putString("gubun", jsonObject.getString("gubun"));
-                }else if(jsonObject.getString("order").equals("readMsg")) {
+                }else if(jsonObject.getString("order").equals("roommate")) {
+                    bundle.putString("roommate", msg);
+                }else if(jsonObject.getString("order").equals("state")) {
                     bundle.putString("room", jsonObject.getString("room"));
+                    bundle.putString("userId", jsonObject.getString("userId"));
+                    bundle.putString("onOff", jsonObject.getString("onOff"));
                     bundle.putString("chatNo", jsonObject.getString("chatNo"));
                 }
                 message.setData(bundle);
