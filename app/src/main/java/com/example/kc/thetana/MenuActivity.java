@@ -85,7 +85,7 @@ public class MenuActivity extends AppCompatActivity {
         ListView lv_room;
         FriendExpandableAdapter friendExpandableAdapter = new FriendExpandableAdapter();
         RoomAdapter roomAdapter = new RoomAdapter();
-        Button bt_logout;
+        Button bt_setting, bt_change, bt_logout, bt_quit;
         SharedPreferences preferences;
         private ArrayList<FriendGroup> friendGroup = new ArrayList<FriendGroup>();
         private ArrayList<RoomItem> roomItems = new ArrayList<RoomItem>();
@@ -167,7 +167,7 @@ public class MenuActivity extends AppCompatActivity {
                 friendGroup.get(0).friendChildren.get(0).state = preferences.getString("stateMessage", "");
 
                 try {
-                    JSONObject jsonObject = dbHelper.getFriend("");
+                    JSONObject jsonObject = dbHelper.getFriends("");
                     JSONArray jsonArray = jsonObject.getJSONArray("friend");
                     for (int i = 0; i < jsonArray.length(); i++) {
                         JSONObject object = jsonArray.getJSONObject(i);
@@ -227,8 +227,6 @@ public class MenuActivity extends AppCompatActivity {
                         if (groupPosition == 0) intent.putExtra("gubun", "me");
 
                         intent.putExtra("id", friendChild.id);
-                        intent.putExtra("name", friendChild.name);
-                        intent.putExtra("state", friendChild.state);
                         intent.putExtra("roomId", friendChild.roomId);
 
                         startActivity(intent);
@@ -255,7 +253,23 @@ public class MenuActivity extends AppCompatActivity {
                 });
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
                 rootView = inflater.inflate(R.layout.fragment_setting, container, false);
+                bt_setting = (Button) rootView.findViewById(R.id.setting_bt_setting);
+                bt_change = (Button) rootView.findViewById(R.id.setting_bt_change);
                 bt_logout = (Button) rootView.findViewById(R.id.setting_bt_logout);
+                bt_quit = (Button) rootView.findViewById(R.id.setting_bt_quit);
+                bt_setting.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(container.getContext(), LoginActivity.class);
+                        startActivity(intent);
+                    }
+                });
+                bt_change.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                    }
+                });
                 bt_logout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -295,6 +309,12 @@ public class MenuActivity extends AppCompatActivity {
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(intent);
+                    }
+                });
+                bt_quit.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
                     }
                 });
             }

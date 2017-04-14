@@ -16,7 +16,6 @@ public class Message {
     public int mType;
     private String mMessage;
     private String mUser;
-    public Integer mNumber = 0;
     private String mChatNo;
     private Bitmap mImage;
 
@@ -39,10 +38,6 @@ public class Message {
         return mUser;
     }
 
-    public Integer getNumber() {
-        return mNumber;
-    }
-
     public String getChatNo() {
         return mChatNo;
     }
@@ -52,7 +47,6 @@ public class Message {
         private Bitmap mImage;
         private String mMessage;
         private String mUser;
-        private Integer mNumber = 0;
         private String mChatNo;
 
         public Builder(int type) {
@@ -73,7 +67,6 @@ public class Message {
             return this;
         }
         public Builder number(Integer number) {
-            mNumber = number;
             return this;
         }
         public Builder chatNo(String chatNo) {
@@ -87,7 +80,6 @@ public class Message {
             message.mImage = mImage;
             message.mMessage = mMessage;
             message.mUser = mUser;
-            message.mNumber = mNumber;
             message.mChatNo = mChatNo;
             return message;
         }

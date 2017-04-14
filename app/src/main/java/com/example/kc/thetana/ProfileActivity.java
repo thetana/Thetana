@@ -24,6 +24,8 @@ public class ProfileActivity extends AppCompatActivity {
     ImageButton ib_edit;
     String id, roomId;
     private SharedPreferences preferences;
+    DBHelper dbHelper = new DBHelper(ProfileActivity.this, "thetana.db", null, 1);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,18 +37,19 @@ public class ProfileActivity extends AppCompatActivity {
         ib_edit = (ImageButton) findViewById(R.id.profile_ib_edit);
 
         intent = this.getIntent();
-        if(intent.getStringExtra("gubun").equals("me")) bt_chat.setVisibility(View.GONE);
+        if (intent.getStringExtra("gubun").equals("me")) {
+            bt_chat.setVisibility(View.GONE);
+            ib_edit.setVisibility(View.GONE);
+        }
         id = intent.getStringExtra("id");
         roomId = intent.getStringExtra("roomId");
 
-        tv_statemessage.setText(intent.getStringExtra("state"));
-        tv_name.setText(intent.getStringExtra("name"));
         bt_chat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 preferences = getSharedPreferences("friend", 0);
                 try {
-                    JSONObject jsonObject =  new JSONObject(preferences.getString(id, ""));
+                    JSONObject jsonObject = new JSONObject(preferences.getString(id, ""));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -64,9 +67,22 @@ public class ProfileActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ProfileActivity.this, ModifyFriendActivity.class);
+                intent.putExtra("id", id);
                 startActivity(intent);
             }
         });
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        JSONObject jsonObject = dbHelper.getFriend(getIntent().getStringExtra("id"));
+        try {
+            tv_statemessage.setText(jsonObject.getString("stateMessage"));
+            tv_name.setText(jsonObject.getString("friendName"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -8,7 +8,6 @@ public class Roommate {
     public String userId = "";
     public int chatNo = 0;
     public Boolean onOff = false;
-    public Integer readed = 0;
     public String userName = "";
     public String stateMessage = "";
     public String profilePicture = "";

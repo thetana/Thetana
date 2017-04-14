@@ -37,7 +37,7 @@ public class DBHelper extends SQLiteOpenHelper {
         db.close();
     }
 
-    public JSONObject getFriend(String friendName) {
+    public JSONObject getFriends(String friendName) {
         SQLiteDatabase db = getReadableDatabase();
 
         JSONObject jsonObject = new JSONObject();
@@ -101,7 +101,7 @@ public class DBHelper extends SQLiteOpenHelper {
         int i = 0;
         try {
             while (cursor.moveToNext()) {
-                Cursor cursor1 = db.rawQuery("SELECT IFNULL(B.friendName, A.userName) AS name FROM roommate A LEFT JOIN friend B ON A.userId = B.friendId WHERE A.roomId = " + cursor.getString(0), null);
+                Cursor cursor1 = db.rawQuery("SELECT IFNULL(NULLIF(B.friendName, ''), A.userName) AS name FROM roommate A LEFT JOIN friend B ON A.userId = B.friendId WHERE A.roomId = " + cursor.getString(0), null);
                 String roomName = "";
                 while (cursor1.moveToNext()) {
                     roomName = roomName + "," + cursor1.getString(0);
@@ -197,6 +197,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
         return cursor.getInt(0);
     }
+
     public String getRoommateName(String userId) {
         String userName = "";
         SQLiteDatabase db = getReadableDatabase();
@@ -206,5 +207,25 @@ public class DBHelper extends SQLiteOpenHelper {
             userName = cursor.getString(0);
         }
         return userName;
+    }
+
+    public JSONObject getFriend(String userId) {
+        String userName = "";
+        SQLiteDatabase db = getReadableDatabase();
+        JSONObject jsonObject = new JSONObject();
+        Cursor cursor = db.rawQuery("SELECT IFNULL(NULLIF(friendName, ''), userName) AS friendName, userName, stateMessage, phoneNumber, profilePicture, backgroundPhoto FROM friend WHERE friendId = '" + userId + "'", null);
+        while (cursor.moveToNext()) {
+            try {
+                jsonObject.put("friendName", cursor.getString(0));
+                jsonObject.put("userName", cursor.getString(1));
+                jsonObject.put("stateMessage", cursor.getString(2));
+                jsonObject.put("phoneNumber", cursor.getString(3));
+                jsonObject.put("profilePicture", cursor.getString(4));
+                jsonObject.put("backgroundPhoto", cursor.getString(5));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return jsonObject;
     }
 }
