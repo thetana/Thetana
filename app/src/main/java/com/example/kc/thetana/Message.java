@@ -17,6 +17,7 @@ public class Message {
     private String mMessage;
     private String mUser;
     private String mChatNo;
+    private String mProfile;
     private Bitmap mImage;
 
     private Message() {
@@ -28,6 +29,10 @@ public class Message {
 
     public String getMessage() {
         return mMessage;
+    }
+
+    public String getProfile() {
+        return mProfile;
     }
 
     public Bitmap getImage() {
@@ -46,6 +51,7 @@ public class Message {
         private final int mType;
         private Bitmap mImage;
         private String mMessage;
+        private String mProfile;
         private String mUser;
         private String mChatNo;
 
@@ -62,6 +68,12 @@ public class Message {
             mMessage = message;
             return this;
         }
+
+        public Builder profile(String profile) {
+            mProfile = profile;
+            return this;
+        }
+
         public Builder user(String user) {
             mUser = user;
             return this;
@@ -69,6 +81,7 @@ public class Message {
         public Builder number(Integer number) {
             return this;
         }
+
         public Builder chatNo(String chatNo) {
             mChatNo = chatNo;
             return this;
@@ -80,6 +93,7 @@ public class Message {
             message.mImage = mImage;
             message.mMessage = mMessage;
             message.mUser = mUser;
+            message.mProfile = mProfile;
             message.mChatNo = mChatNo;
             return message;
         }

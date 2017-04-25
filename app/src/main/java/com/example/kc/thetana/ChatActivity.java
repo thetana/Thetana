@@ -1,14 +1,15 @@
 package com.example.kc.thetana;
 
 import android.content.Intent;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.ListView;
 
 /**
  * Created by kc on 2017-02-25.
@@ -17,11 +18,17 @@ import android.view.MenuItem;
 public class ChatActivity extends ActionBarActivity {
     String imgDecodableString;
     String roomId = "", roomGubun = "";
+    private DrawerLayout dl_drawer;
+    ListView lv_roommate;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_chat);
+        dl_drawer = (DrawerLayout) findViewById(R.id.chat_dl_drawer);
+        lv_roommate = (ListView) findViewById(R.id.chat_lv_roommate);
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
         roomId = getIntent().getStringExtra("roomId");
@@ -38,13 +45,22 @@ public class ChatActivity extends ActionBarActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.chat_action_invite) {
-            Intent intent = new Intent(ChatActivity.this, InviteActivity.class);
-            intent.putExtra("roomId", roomId);
-            intent.putExtra("roomGubun", roomGubun);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-            startActivity(intent);
+        if (id == R.id.chat_action_drawer) {
+            if (dl_drawer.isDrawerOpen(Gravity.RIGHT)) {
+                dl_drawer.closeDrawer(Gravity.RIGHT);
+            } else {
+                dl_drawer.openDrawer(Gravity.RIGHT);
+            }
+            if (item != null && item.getItemId() == android.R.id.home) {
+            }
+//            Intent intent = new Intent(ChatActivity.this, InviteActivity.class);
+//            intent.putExtra("roomId", roomId);
+//            intent.putExtra("roomGubun", roomGubun);
+//            intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+//            startActivity(intent);
 
+            return true;
+        } else if (id == R.id.home) {
             return true;
         }
         return super.onOptionsItemSelected(item);

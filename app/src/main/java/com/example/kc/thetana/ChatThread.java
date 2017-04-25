@@ -51,6 +51,9 @@ public class ChatThread extends Thread {
                     bundle.putString("userId", jsonObject.getString("userId"));
                     bundle.putString("onOff", jsonObject.getString("onOff"));
                     bundle.putString("chatNo", jsonObject.getString("chatNo"));
+                }else if(jsonObject.getString("order").equals("newmate")) {
+                    bundle.putString("room", jsonObject.getString("room"));
+                    bundle.putString("roommate", jsonObject.getString("roommate"));
                 }
                 message.setData(bundle);
                 handler.sendMessage(message);

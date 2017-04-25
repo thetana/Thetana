@@ -9,4 +9,6 @@ public class FriendChild {
     public String name;
     public String state;
     public String roomId;
+    public String profile;
+    public String background;
 }

@@ -1,22 +1,20 @@
 package com.example.kc.thetana;
 
-import android.app.ActivityManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Map;
 
 /**
@@ -31,28 +29,99 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Map<String, String> data = remoteMessage.getData();
-        Log.d(TAG, "From: " + remoteMessage.getFrom());
 
-        if (data.size() > 0) {
-            Log.d(TAG, "Message data payload: " + data);
+        if (data.get("what").equals("msg")) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("INSERT INTO chat VALUES(null, ");
+            stringBuilder.append(data.get("chatNo")).append(", ");
+            stringBuilder.append(data.get("roomId")).append(", '");
+            stringBuilder.append(data.get("userId")).append("', '");
+            stringBuilder.append(data.get("gubun")).append("', '");
+            stringBuilder.append(data.get("message")).append("')");
+            dbHelper.edit(stringBuilder.toString());
+
+//        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+//        ComponentName componentName = activityManager.getRunningTasks(1).get(0).topActivity;
+//        if (!ChatActivity.class.getName().equals(componentName.getClassName())) sendNotification(data);
+            if (!getSharedPreferences("now", 0).getString("room", "").equals(data.get("roomId")))
+                sendNotification(data);
+        } else if (data.get("what").equals("updateUser")) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("UPDATE friend SET userName = '").append(data.get("name"));
+            stringBuilder.append("', stateMessage = '").append(data.get("stateMessage"));
+            stringBuilder.append("', phoneNumber = '").append(data.get("phoneNumber"));
+            stringBuilder.append("' WHERE friendId = '").append(data.get("userId")).append("'");
+            dbHelper.edit(stringBuilder.toString());
+
+            stringBuilder = new StringBuilder();
+            stringBuilder.append("UPDATE roommate SET userName = '").append(data.get("name"));
+            stringBuilder.append("', stateMessage = '").append(data.get("stateMessage"));
+            stringBuilder.append("' WHERE userId = '").append(data.get("userId")).append("'");
+            dbHelper.edit(stringBuilder.toString());
+        } else if (data.get("what").equals("updateProfile")) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("UPDATE friend SET profilePicture = '").append(data.get("profile"));
+            stringBuilder.append("' WHERE friendId = '").append(data.get("userId")).append("'");
+            dbHelper.edit(stringBuilder.toString());
+
+            stringBuilder = new StringBuilder();
+            stringBuilder.append("UPDATE roommate SET profilePicture = '").append(data.get("profile"));
+            stringBuilder.append("' WHERE userId = '").append(data.get("userId")).append("'");
+            dbHelper.edit(stringBuilder.toString());
+        } else if (data.get("what").equals("updateBackground")) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("UPDATE friend SET backgroundPhoto = '").append(data.get("background"));
+            stringBuilder.append("' WHERE friendId = '").append(data.get("userId")).append("'");
+            dbHelper.edit(stringBuilder.toString());
+
+            stringBuilder = new StringBuilder();
+            stringBuilder.append("UPDATE roommate SET backgroundPhoto = '").append(data.get("background"));
+            stringBuilder.append("' WHERE userId = '").append(data.get("userId")).append("'");
+            dbHelper.edit(stringBuilder.toString());
+        } else if (data.get("what").equals("newRoom")) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("INSERT INTO room VALUES(").append(data.get("roomId")).append(", '");
+            stringBuilder.append(data.get("title")).append("', '");
+            stringBuilder.append(data.get("subTitle")).append("', '");
+            stringBuilder.append(data.get("roomGubun")).append("')");
+            dbHelper.edit(stringBuilder.toString());
+
+            try {
+                JSONArray jsonArray = new JSONArray(data.get("roommate"));
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject object = jsonArray.getJSONObject(i);
+                    stringBuilder = new StringBuilder();
+                    stringBuilder.append("INSERT INTO roommate VALUES(null, ");
+                    stringBuilder.append(object.getString("roomId")).append(", '");
+                    stringBuilder.append(object.getString("userId")).append("', '");
+                    stringBuilder.append(object.getString("userName")).append("', '");
+                    stringBuilder.append(object.getString("stateMessage")).append("', '");
+                    stringBuilder.append(object.getString("profilePicture")).append("', '");
+                    stringBuilder.append(object.getString("backgroundPhoto")).append("')");
+                    dbHelper.edit(stringBuilder.toString());
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else if (data.get("what").equals("newRoommate")) {
+            try {
+                JSONArray jsonArray = new JSONArray(data.get("roommate"));
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject object = jsonArray.getJSONObject(i);
+                    StringBuilder stringBuilder = new StringBuilder();
+                    stringBuilder.append("INSERT INTO roommate VALUES(null, ");
+                    stringBuilder.append(object.getString("roomId")).append(", '");
+                    stringBuilder.append(object.getString("userId")).append("', '");
+                    stringBuilder.append(object.getString("userName")).append("', '");
+                    stringBuilder.append(object.getString("stateMessage")).append("', '");
+                    stringBuilder.append(object.getString("profilePicture")).append("', '");
+                    stringBuilder.append(object.getString("backgroundPhoto")).append("')");
+                    dbHelper.edit(stringBuilder.toString());
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
-
-        if (remoteMessage.getNotification() != null) {
-            Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
-        }
-
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("INSERT INTO chat VALUES(null, ");
-        stringBuilder.append(data.get("chatNo")).append(", ");
-        stringBuilder.append(data.get("roomId")).append(", '");
-        stringBuilder.append(data.get("userId")).append("', '");
-        stringBuilder.append(data.get("gubun")).append("', '");
-        stringBuilder.append(data.get("message" )).append("')");
-        dbHelper.edit(stringBuilder.toString());
-
-        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        ComponentName componentName = activityManager.getRunningTasks(1).get(0).topActivity;
-        if (!ChatActivity.class.getName().equals(componentName.getClassName())) sendNotification(data);
     }
 
     private void sendNotification(Map<String, String> messageBody) {

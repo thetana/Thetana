@@ -2,8 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/chat_action_invite"
-        android:orderInCategory="100"
-        android:title="초대"
-        app:showAsAction="never" />
+        android:id="@+id/chat_action_drawer"
+        android:icon="@drawable/ic_drawer"
+        android:title=""
+        app:showAsAction="always" />
 </menu>

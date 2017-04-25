@@ -42,21 +42,63 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/modify_m_tv_id"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:textSize="24sp" />
+                    android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/modify_m_tv_email"
+                    <TextView
+                        android:id="@+id/modify_m_tv_id"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="6"
+                        android:gravity="right|center_vertical"
+                        android:text="ID" />
+
+                    <EditText
+                        android:id="@+id/modify_m_et_id"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:clickable="false"
+                        android:editable="false"
+                        android:ems="10"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:gravity="center"
+                        android:inputType="textEmailAddress"
+                        android:longClickable="false" />
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:gravity="center"
-                    android:textSize="24sp" />
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/modify_m_tv_email"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="6"
+                        android:gravity="right|center_vertical"
+                        android:text="Email" />
+
+                    <EditText
+                        android:id="@+id/modify_m_et_email"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:clickable="false"
+                        android:editable="false"
+                        android:ems="10"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:gravity="center"
+                        android:inputType="textEmailAddress"
+                        android:longClickable="false" />
+                </LinearLayout>
+
             </LinearLayout>
 
         </LinearLayout>
@@ -75,12 +117,12 @@
                 android:text="이름" />
 
             <EditText
-                android:id="@+id/modify_m_ev_name"
+                android:id="@+id/modify_m_et_name"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:ems="10"
-                android:gravity="right"
+                android:gravity="left"
                 android:inputType="textPersonName" />
 
         </LinearLayout>
@@ -99,12 +141,12 @@
                 android:text="상태메시지" />
 
             <EditText
-                android:id="@+id/modify_m_ev_state"
+                android:id="@+id/modify_m_et_state"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:ems="10"
-                android:gravity="right"
+                android:gravity="left"
                 android:inputType="textPersonName" />
         </LinearLayout>
 
@@ -119,16 +161,18 @@
                 android:layout_height="match_parent"
                 android:layout_weight="4"
                 android:gravity="left|center"
-                android:text="전화번호" />
+                android:text="전화번호"
+                android:visibility="invisible" />
 
             <EditText
-                android:id="@+id/modify_m_ev_number"
+                android:id="@+id/modify_m_et_number"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:ems="10"
                 android:gravity="right"
-                android:inputType="textPhonetic|numberSigned|phone" />
+                android:inputType="number"
+                android:visibility="invisible" />
         </LinearLayout>
 
         <Button

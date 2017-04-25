@@ -58,6 +58,7 @@ public class ChatFragment extends Fragment {
     public Hashtable<String, Roommate> roommateMap = new Hashtable<String, Roommate>();
     private Hashtable<String, Integer> mHashtable = new Hashtable<String, Integer>();
     private MessageAdapter mAdapter;
+    RoommateAdapter roommateAdapter = new RoommateAdapter();
     SendHandler sendHandler;
     ChatThread chatThread;
     ChatHandler handler;
@@ -91,9 +92,7 @@ public class ChatFragment extends Fragment {
         dbHelper = new DBHelper(context, "thetana.db", null, 1);
         myId = context.getSharedPreferences("user", 0).getString("id", "");
         myName = context.getSharedPreferences("user", 0).getString("name", "");
-        myStateMsg = context.getSharedPreferences("user", 0).getString("stateMessage", "");
         myProfile = context.getSharedPreferences("user", 0).getString("profilePicture", "");
-        myBackground = context.getSharedPreferences("user", 0).getString("backgroundPhoto", "");
         room = ((Activity) context).getIntent().getStringExtra("roomId");
         roomGubun = ((Activity) context).getIntent().getStringExtra("roomGubun");
 
@@ -104,17 +103,13 @@ public class ChatFragment extends Fragment {
 
             roommateList.add(0, new Roommate(myId));
             roommateList.get(0).userName = myName;
-            roommateList.get(0).stateMessage = myStateMsg;
             roommateList.get(0).profilePicture = myProfile;
-            roommateList.get(0).backgroundPhoto = myBackground;
             roommateMap.put(myId, roommateList.get(0));
             for (int i = 1; i <= jsonArray.length(); i++) {
                 JSONObject object = jsonArray.getJSONObject(i - 1);
                 roommateList.add(i, new Roommate(object.getString("userId")));
                 roommateList.get(i).userName = object.getString("userName");
-                roommateList.get(i).stateMessage = object.getString("stateMessage");
                 roommateList.get(i).profilePicture = object.getString("profilePicture");
-                roommateList.get(i).backgroundPhoto = object.getString("backgroundPhoto");
                 roommateMap.put(object.getString("userId"), roommateList.get(i));
             }
         } catch (JSONException e) {
@@ -162,13 +157,15 @@ public class ChatFragment extends Fragment {
                 String userId = object.getString("userId");
                 String gubun = object.getString("gubun");
                 String message = object.getString("message");
-                String friendName = roommateMap.get(object.getString("userId")).userName;
+                String userName = object.getString("userName");
+                String profilePicture = object.getString("profilePicture");
+//                String userName = roommateMap.get(object.getString("userId")).userName;
 
                 int type = 0;
                 if (userId.equals(myId)) type = Message.TYPE_MMESSAGE;
                 else type = Message.TYPE_FMESSAGE;
 
-                addMessage(friendName, message, chatNo, type);
+                addMessage(userName, profilePicture, message, chatNo, type);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -177,6 +174,9 @@ public class ChatFragment extends Fragment {
         SharedPreferences.Editor editor = context.getSharedPreferences("now", 0).edit();
         editor.putString("room", room);
         editor.commit();
+        roommateAdapter = new RoommateAdapter();
+        roommateAdapter.putItems(roommateList);
+        ((ChatActivity)getActivity()).lv_roommate.setAdapter(roommateAdapter);
     }
 
     class ChatHandler extends Handler {
@@ -202,18 +202,34 @@ public class ChatFragment extends Fragment {
 
             if (room.equals(msg.getData().getString("room"))) {
                 if (msg.getData().getString("order").equals("sendMsg")) {
-                    String name = "";
+                    String name = "", profilePicture = "";
                     int type = 0;
                     if (msg.getData().getString("user").equals(myId)) type = Message.TYPE_MMESSAGE;
                     else type = Message.TYPE_FMESSAGE;
                     name = roommateMap.get(msg.getData().getString("user")).userName;
-
-                    addMessage(name, msg.getData().getString("msg"), msg.getData().getString("chatNo"), type);
+                    profilePicture = roommateMap.get(msg.getData().getString("user")).profilePicture;
+                    addMessage(name, profilePicture, msg.getData().getString("msg"), msg.getData().getString("chatNo"), type);
                 } else if (msg.getData().getString("order").equals("state")) {
                     roommateMap.get(msg.getData().getString("userId")).chatNo = Integer.parseInt(msg.getData().getString("chatNo"));
                     if (msg.getData().getString("onOff").equals("on"))
                         roommateMap.get(msg.getData().getString("userId")).onOff = true;
                     else roommateMap.get(msg.getData().getString("userId")).onOff = false;
+                } else if (msg.getData().getString("order").equals("newmate")) {
+                    try {
+                        JSONArray jsonArray = new JSONArray(msg.getData().getString("roommate"));
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject object = new JSONObject(jsonArray.getString(i));
+                            Roommate roommate = new Roommate(object.getString("userId"));
+                            roommate.userName = object.getString("userName");
+                            roommate.profilePicture = object.getString("profilePicture");
+                            roommate.chatNo = object.getInt("chatNo");
+                            roommate.onOff = false;
+                            roommateList.add(roommate);
+                            roommateMap.put(object.getString("userId"), roommate);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -262,10 +278,9 @@ public class ChatFragment extends Fragment {
                     JSONArray array = new JSONArray();
 
                     if (room.equals("") || room.equals("0")) {
-                        array.put(0, myId);
                         String[] ids = ((Activity) context).getIntent().getStringExtra("id").split(",");
                         for (int i = 0; i < ids.length; i++) {
-                            array.put(i + 1, ids[i]);
+                            array.put(i, ids[i]);
                         }
 
                         String link = context.getString(R.string.ip) + "addRoom.php";
@@ -299,9 +314,7 @@ public class ChatFragment extends Fragment {
 
                             roommateList.add(i + 1, new Roommate(object.getString("userId")));
                             roommateList.get(i + 1).userName = object.getString("userName");
-                            roommateList.get(i + 1).stateMessage = object.getString("stateMessage");
                             roommateList.get(i + 1).profilePicture = object.getString("profilePicture");
-                            roommateList.get(i + 1).backgroundPhoto = object.getString("backgroundPhoto");
                             roommateMap.put(object.getString("userId"), roommateList.get(i + 1));
                         }
 
@@ -347,9 +360,9 @@ public class ChatFragment extends Fragment {
         scrollToBottom();
     }
 
-    private void addMessage(String id, String message, String chatNo, int type) {
+    private void addMessage(String id, String profile, String message, String chatNo, int type) {
         mHashtable.put(chatNo, mMessages.size());
-        mMessages.add(new Message.Builder(type).message(message).user(id).chatNo(chatNo).build());
+        mMessages.add(new Message.Builder(type).message(message).user(id).profile(profile).chatNo(chatNo).build());
 
         mAdapter = new MessageAdapter(mMessages, roommateList);
         mAdapter.notifyItemInserted(0);
@@ -397,7 +410,7 @@ public class ChatFragment extends Fragment {
         super.onStop();
 
         SharedPreferences.Editor editor = context.getSharedPreferences("now", 0).edit();
-        editor.clear();
+        editor.remove("room");
         editor.commit();
 
         try {

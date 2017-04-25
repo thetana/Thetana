@@ -9,9 +9,7 @@ public class Roommate {
     public int chatNo = 0;
     public Boolean onOff = false;
     public String userName = "";
-    public String stateMessage = "";
     public String profilePicture = "";
-    public String backgroundPhoto = "";
 
     public Roommate(String userId) {
         this.userId = userId;

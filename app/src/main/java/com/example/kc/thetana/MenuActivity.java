@@ -1,15 +1,18 @@
 package com.example.kc.thetana;
 
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -38,10 +41,7 @@ import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
 
 /**
  * Created by kc on 2017-02-18.
@@ -60,6 +60,17 @@ public class MenuActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
+
+//        ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE);
+//        ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+//        ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE
+                    , Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA}, 1);
+
+
         dbHelper = new DBHelper(MenuActivity.this, "thetana.db", null, 1);
         FirebaseMessaging.getInstance().subscribeToTopic("news");
 
@@ -165,6 +176,8 @@ public class MenuActivity extends AppCompatActivity {
                 friendGroup.get(0).friendChildren.get(0).id = preferences.getString("id", "");
                 friendGroup.get(0).friendChildren.get(0).name = preferences.getString("name", "");
                 friendGroup.get(0).friendChildren.get(0).state = preferences.getString("stateMessage", "");
+                friendGroup.get(0).friendChildren.get(0).profile = preferences.getString("profilePicture", "");
+                friendGroup.get(0).friendChildren.get(0).background = preferences.getString("backgroundPhoto", "");
 
                 try {
                     JSONObject jsonObject = dbHelper.getFriends("");
@@ -175,6 +188,8 @@ public class MenuActivity extends AppCompatActivity {
                         String bookmark = object.getString("bookmark");
                         String friendName = object.getString("friendName");
                         String stateMessage = object.getString("stateMessage");
+                        String profilePicture = object.getString("profilePicture");
+                        String backgroundPhoto = object.getString("backgroundPhoto");
                         String roomId = object.getString("roomId");
 
                         FriendChild friendChild = new FriendChild();
@@ -182,6 +197,8 @@ public class MenuActivity extends AppCompatActivity {
                         friendChild.name = friendName;
                         friendChild.state = stateMessage;
                         friendChild.roomId = roomId;
+                        friendChild.profile = profilePicture;
+                        friendChild.background = backgroundPhoto;
 
                         friendGroup.get(2).friendChildren.add(friendChild);
                     }
@@ -260,7 +277,7 @@ public class MenuActivity extends AppCompatActivity {
                 bt_setting.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent = new Intent(container.getContext(), LoginActivity.class);
+                        Intent intent = new Intent(container.getContext(), ModifyMeActivity.class);
                         startActivity(intent);
                     }
                 });
@@ -285,12 +302,12 @@ public class MenuActivity extends AppCompatActivity {
                         editor.clear();
                         editor.commit();
 
-                        preferences = container.getContext().getSharedPreferences("friend", 0);
+                        preferences = container.getContext().getSharedPreferences("now", 0);
                         editor = preferences.edit();
                         editor.clear();
                         editor.commit();
 
-                        preferences = container.getContext().getSharedPreferences("room", 0);
+                        preferences = container.getContext().getSharedPreferences("friend", 0);
                         editor = preferences.edit();
                         editor.clear();
                         editor.commit();
@@ -381,11 +398,13 @@ public class MenuActivity extends AppCompatActivity {
                             String subTitle = object.getString("subTitle");
                             String roomGubun = object.getString("roomGubun");
                             String roomName = object.getString("roomName");
+                            String profilePicture = object.getString("profilePicture");
 
                             RoomItem roomItem = new RoomItem();
                             roomItem.id = roomId;
                             roomItem.gubun = roomGubun;
                             roomItem.name = roomName;
+                            roomItem.pictrue = profilePicture;
 
                             roomItems.add(roomItem);
                         }

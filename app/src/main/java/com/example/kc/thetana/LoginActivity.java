@@ -204,6 +204,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 JSONArray jsonArray = null;
                 String chk = "";
                 String id = "";
+                String userEmail = "";
                 String name = "";
                 String stateMessage = "";
                 String phoneNumber = "";
@@ -216,6 +217,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
                     chk = object.getString("chk");
                     id = object.getString("id");
+                    userEmail = object.getString("userEmail");
                     name = object.getString("name");
                     stateMessage = object.getString("stateMessage");
                     phoneNumber = object.getString("phoneNumber");
@@ -229,6 +231,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     preferences = getSharedPreferences("user", 0);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putString("id", id);
+                    editor.putString("Email", userEmail);
                     editor.putString("name", name);
                     editor.putString("stateMessage", stateMessage);
                     editor.putString("phoneNumber", phoneNumber);

@@ -73,7 +73,7 @@ public class DBHelper extends SQLiteOpenHelper {
         JSONObject jsonObject = new JSONObject();
         JSONArray array = new JSONArray();
 
-        Cursor cursor = db.rawQuery("SELECT friendId, friendName FROM friend WHERE friendId NOT IN(SELECT userId FROM roommate WHERE roomId = " + roomId + ")", null);
+        Cursor cursor = db.rawQuery("SELECT friendId, IFNULL(NULLIF(friendName, ''), userName) FROM friend WHERE friendId NOT IN(SELECT userId FROM roommate WHERE roomId = " + roomId + ")", null);
         int i = 0;
         try {
             while (cursor.moveToNext()) {
@@ -101,10 +101,11 @@ public class DBHelper extends SQLiteOpenHelper {
         int i = 0;
         try {
             while (cursor.moveToNext()) {
-                Cursor cursor1 = db.rawQuery("SELECT IFNULL(NULLIF(B.friendName, ''), A.userName) AS name FROM roommate A LEFT JOIN friend B ON A.userId = B.friendId WHERE A.roomId = " + cursor.getString(0), null);
-                String roomName = "";
+                Cursor cursor1 = db.rawQuery("SELECT IFNULL(NULLIF(B.friendName, ''), A.userName) AS name, A.profilePicture FROM roommate A LEFT JOIN friend B ON A.userId = B.friendId WHERE A.roomId = " + cursor.getString(0), null);
+                String roomName = "", profilePicture = "";
                 while (cursor1.moveToNext()) {
                     roomName = roomName + "," + cursor1.getString(0);
+                    profilePicture = cursor1.getString(1);
                 }
                 roomName = roomName.substring(1);
 
@@ -113,6 +114,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 object.put("subTitle", cursor.getString(1));
                 object.put("roomGubun", cursor.getString(2));
                 object.put("roomName", roomName);
+                object.put("profilePicture", profilePicture);
                 array.put(i, object);
                 i++;
             }
@@ -130,16 +132,14 @@ public class DBHelper extends SQLiteOpenHelper {
         JSONObject jsonObject = new JSONObject();
         JSONArray array = new JSONArray();
 
-        Cursor cursor = db.rawQuery("SELECT userId, IFNULL(NULLIF(B.friendName, ''), A.userName) AS userName, A.stateMessage, A.profilePicture, A.backgroundPhoto FROM roommate A LEFT JOIN friend B ON A.userId = B.friendId WHERE A.roomId = " + roomId, null);
+        Cursor cursor = db.rawQuery("SELECT userId, IFNULL(NULLIF(B.friendName, ''), A.userName) AS userName, A.profilePicture FROM roommate A LEFT JOIN friend B ON A.userId = B.friendId WHERE A.roomId = " + roomId, null);
         int i = 0;
         try {
             while (cursor.moveToNext()) {
                 JSONObject object = new JSONObject();
                 object.put("userId", cursor.getString(0));
                 object.put("userName", cursor.getString(1));
-                object.put("stateMessage", cursor.getString(2));
-                object.put("profilePicture", cursor.getString(3));
-                object.put("backgroundPhoto", cursor.getString(4));
+                object.put("profilePicture", cursor.getString(2));
                 array.put(i, object);
                 i++;
             }
@@ -157,7 +157,7 @@ public class DBHelper extends SQLiteOpenHelper {
         JSONObject jsonObject = new JSONObject();
         JSONArray array = new JSONArray();
 
-        Cursor cursor = db.rawQuery("SELECT A.chatNo, A.roomId, A.userId, A.gubun, A.message, B.friendName FROM chat A LEFT JOIN friend B ON A.userId = B.friendId WHERE roomId = '" + roomId + "'", null);
+        Cursor cursor = db.rawQuery("SELECT A.chatNo, A.roomId, A.userId, A.gubun, A.message, IFNULL(NULLIF(C.friendName, ''), IFNULL(B.userName, '(알수없음)')) AS userName, IFNULL(B.profilePicture, '') AS profilePicture FROM chat A LEFT JOIN roommate B ON A.roomId = B.roomId AND A.userId = B.userId LEFT JOIN friend C ON B.userId = C.friendId WHERE A.roomId = '" + roomId + "'", null);
         int i = 0;
         try {
             while (cursor.moveToNext()) {
@@ -167,7 +167,8 @@ public class DBHelper extends SQLiteOpenHelper {
                 object.put("userId", cursor.getString(2));
                 object.put("gubun", cursor.getString(3));
                 object.put("message", cursor.getString(4));
-                object.put("friendName", cursor.getInt(5));
+                object.put("userName", cursor.getString(5));
+                object.put("profilePicture", cursor.getString(6));
                 array.put(i, object);
                 i++;
             }

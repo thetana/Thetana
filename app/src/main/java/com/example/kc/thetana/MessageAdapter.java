@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.androidquery.AQuery;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +19,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     private List<Message> mMessages;
     private ArrayList<Roommate> roommateList = new ArrayList<Roommate>();
     private int[] mUsernameColors;
+    private AQuery aq;
 
     public MessageAdapter(List<Message> messages, ArrayList<Roommate> roommate) {
         mMessages = messages;
@@ -48,6 +51,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
                 layout = R.layout.item_message_me;
                 break;
         }
+        aq = new AQuery(parent.getContext());
         View v = LayoutInflater
                 .from(parent.getContext())
                 .inflate(layout, parent, false);
@@ -59,7 +63,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         Message message = mMessages.get(position);
         viewHolder.setMessage(message.getMessage());
         viewHolder.setName(message.getUser());
-        viewHolder.setImage(message.getImage());
+        viewHolder.setProfile(message.getProfile());
+//        viewHolder.setImage(message.getImage());
     }
 
     @Override
@@ -73,7 +78,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        private ImageView mImageView;
+        private ImageView iv_profile;
         private TextView tv_name;
         private TextView tv_message;
 
@@ -83,6 +88,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
                 case Message.TYPE_FMESSAGE:
                     tv_name = (TextView) itemView.findViewById(R.id.fmsg_tv_name);
                     tv_message = (TextView) itemView.findViewById(R.id.fmsg_tv_message);
+                    iv_profile = (ImageView) itemView.findViewById(R.id.fmsg_iv_profile);
                     break;
                 case Message.TYPE_MMESSAGE:
                     tv_message = (TextView) itemView.findViewById(R.id.mymsg_tv_message);
@@ -109,11 +115,17 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             tv_name.setText(name);
         }
 
-        public void setImage(Bitmap bmp) {
-            if (null == mImageView) return;
-            if (null == bmp) return;
-            mImageView.setImageBitmap(bmp);
+        public void setProfile(String profile) {
+            if (null == iv_profile) return;
+            if (null == profile) return;
+            aq.id(iv_profile).image(profile);
         }
+
+//        public void setImage(Bitmap bmp) {
+//            if (null == mImageView) return;
+//            if (null == bmp) return;
+//            mImageView.setImageBitmap(bmp);
+//        }
 
         private int getUsernameColor(String username) {
             int hash = 7;
