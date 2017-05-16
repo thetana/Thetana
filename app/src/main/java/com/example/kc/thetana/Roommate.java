@@ -1,5 +1,10 @@
 package com.example.kc.thetana;
 
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import java.util.HashMap;
+
 /**
  * Created by kc on 2017-04-08.
  */
@@ -10,8 +15,11 @@ public class Roommate {
     public Boolean onOff = false;
     public String userName = "";
     public String profilePicture = "";
-
+    public ImageView iv;
+    public TextView tv;
+    public HashMap<ImageView, TextView> viewMap = new HashMap<ImageView, TextView>();
     public Roommate(String userId) {
         this.userId = userId;
+
     }
 }

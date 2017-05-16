@@ -242,8 +242,9 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
                     dbHelper.edit("CREATE TABLE friend (friendNo INTEGER PRIMARY KEY AUTOINCREMENT, friendId TEXT, bookmark TEXT, friendName TEXT, userName TEXT, stateMessage TEXT, phoneNumber TEXT, profilePicture TEXT, backgroundPhoto TEXT);");
                     dbHelper.edit("CREATE TABLE room (roomId INTEGER PRIMARY KEY, title TEXT, subTitle TEXT, roomGubun TEXT);");
-                    dbHelper.edit("CREATE TABLE roommate (roommateId INTEGER PRIMARY KEY AUTOINCREMENT, roomId INTEGER, userId TEXT, userName TEXT, stateMessage TEXT, profilePicture TEXT, backgroundPhoto TEXT);");
-                    dbHelper.edit("CREATE TABLE chat (chatId INTEGER PRIMARY KEY AUTOINCREMENT, chatNo INTEGER, roomId INTEGER, userId TEXT, gubun TEXT, message TEXT);");
+                    dbHelper.edit("CREATE TABLE roommate (roommateId INTEGER PRIMARY KEY AUTOINCREMENT, roomId INTEGER, userId TEXT, userName TEXT, stateMessage TEXT, profilePicture TEXT, backgroundPhoto TEXT, chatNo INTEGER);");
+                    dbHelper.edit("CREATE TABLE chat (chatId INTEGER PRIMARY KEY AUTOINCREMENT, chatNo INTEGER, roomId INTEGER, userId TEXT, gubun TEXT, message TEXT, dtTm TEXT);");
+                    dbHelper.edit("CREATE TABLE tempChat (chatId INTEGER PRIMARY KEY AUTOINCREMENT, roomId INTEGER, userId TEXT, gubun TEXT, message TEXT);");
 
                     try {
                         jsonArray = new JSONArray(jsonObject.getString("friend"));
@@ -283,7 +284,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                             stringBuilder.append(object.getString("userName")).append("', '");
                             stringBuilder.append(object.getString("stateMessage")).append("', '");
                             stringBuilder.append(object.getString("profilePicture")).append("', '");
-                            stringBuilder.append(object.getString("backgroundPhoto")).append("')");
+                            stringBuilder.append(object.getString("backgroundPhoto")).append("', '");
+                            stringBuilder.append(object.getString("chatNo")).append("')");
                             dbHelper.edit(stringBuilder.toString());
 
                         }
@@ -296,7 +298,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                             stringBuilder.append(object.getString("roomId")).append(", '");
                             stringBuilder.append(object.getString("userId")).append("', '");
                             stringBuilder.append(object.getString("gubun")).append("', '");
-                            stringBuilder.append(object.getString("message")).append("')");
+                            stringBuilder.append(object.getString("message")).append("', '");
+                            stringBuilder.append(object.getString("dtTm")).append("')");
                             dbHelper.edit(stringBuilder.toString());
 
                             preferences = getSharedPreferences("chatNo", 0);

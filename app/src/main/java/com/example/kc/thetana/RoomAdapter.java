@@ -29,6 +29,15 @@ public class RoomAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
+    public void addItem(RoomItem item) {
+        roomItems.add(item);
+        notifyDataSetChanged();
+    }
+    public void clearItem() {
+        roomItems.clear();
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getCount() {
         return roomItems.size();

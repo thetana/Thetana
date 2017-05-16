@@ -37,7 +37,6 @@ public class FriendAdapter extends BaseAdapter {
     TextView tv_name;
     Button bt_add;
     SharedPreferences preferences;
-    GlobalClass globalClass;
 
     public void addItem(ArrayList<FriendItem> itme) {
         friendItems = itme;

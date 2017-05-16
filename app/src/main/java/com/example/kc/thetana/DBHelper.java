@@ -73,13 +73,14 @@ public class DBHelper extends SQLiteOpenHelper {
         JSONObject jsonObject = new JSONObject();
         JSONArray array = new JSONArray();
 
-        Cursor cursor = db.rawQuery("SELECT friendId, IFNULL(NULLIF(friendName, ''), userName) FROM friend WHERE friendId NOT IN(SELECT userId FROM roommate WHERE roomId = " + roomId + ")", null);
+        Cursor cursor = db.rawQuery("SELECT friendId, IFNULL(NULLIF(friendName, ''), userName), profilePicture FROM friend WHERE friendId NOT IN(SELECT userId FROM roommate WHERE roomId = " + roomId + ")", null);
         int i = 0;
         try {
             while (cursor.moveToNext()) {
                 JSONObject object = new JSONObject();
                 object.put("friendId", cursor.getString(0));
                 object.put("friendName", cursor.getString(1));
+                object.put("profilePicture", cursor.getString(2));
                 array.put(i, object);
                 i++;
             }
@@ -107,7 +108,8 @@ public class DBHelper extends SQLiteOpenHelper {
                     roomName = roomName + "," + cursor1.getString(0);
                     profilePicture = cursor1.getString(1);
                 }
-                roomName = roomName.substring(1);
+
+                if(!roomName.equals("")) roomName = roomName.substring(1);
 
                 JSONObject object = new JSONObject();
                 object.put("roomId", cursor.getString(0));
@@ -132,7 +134,7 @@ public class DBHelper extends SQLiteOpenHelper {
         JSONObject jsonObject = new JSONObject();
         JSONArray array = new JSONArray();
 
-        Cursor cursor = db.rawQuery("SELECT userId, IFNULL(NULLIF(B.friendName, ''), A.userName) AS userName, A.profilePicture FROM roommate A LEFT JOIN friend B ON A.userId = B.friendId WHERE A.roomId = " + roomId, null);
+        Cursor cursor = db.rawQuery("SELECT userId, IFNULL(NULLIF(B.friendName, ''), A.userName) AS userName, A.profilePicture, A.chatNo FROM roommate A LEFT JOIN friend B ON A.userId = B.friendId WHERE A.roomId = " + roomId, null);
         int i = 0;
         try {
             while (cursor.moveToNext()) {
@@ -140,6 +142,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 object.put("userId", cursor.getString(0));
                 object.put("userName", cursor.getString(1));
                 object.put("profilePicture", cursor.getString(2));
+                object.put("chatNo", cursor.getString(3));
                 array.put(i, object);
                 i++;
             }
@@ -157,7 +160,7 @@ public class DBHelper extends SQLiteOpenHelper {
         JSONObject jsonObject = new JSONObject();
         JSONArray array = new JSONArray();
 
-        Cursor cursor = db.rawQuery("SELECT A.chatNo, A.roomId, A.userId, A.gubun, A.message, IFNULL(NULLIF(C.friendName, ''), IFNULL(B.userName, '(알수없음)')) AS userName, IFNULL(B.profilePicture, '') AS profilePicture FROM chat A LEFT JOIN roommate B ON A.roomId = B.roomId AND A.userId = B.userId LEFT JOIN friend C ON B.userId = C.friendId WHERE A.roomId = '" + roomId + "'", null);
+        Cursor cursor = db.rawQuery("SELECT A.chatNo, A.roomId, A.userId, A.gubun, A.message, IFNULL(NULLIF(C.friendName, ''), IFNULL(B.userName, '(알수없음)')) AS userName, IFNULL(B.profilePicture, '') AS profilePicture, A.dtTm FROM chat A LEFT JOIN roommate B ON A.roomId = B.roomId AND A.userId = B.userId LEFT JOIN friend C ON B.userId = C.friendId WHERE A.roomId = '" + roomId + "'", null);
         int i = 0;
         try {
             while (cursor.moveToNext()) {
@@ -169,6 +172,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 object.put("message", cursor.getString(4));
                 object.put("userName", cursor.getString(5));
                 object.put("profilePicture", cursor.getString(6));
+                object.put("dtTm", cursor.getString(7));
                 array.put(i, object);
                 i++;
             }
@@ -199,9 +203,30 @@ public class DBHelper extends SQLiteOpenHelper {
         return cursor.getInt(0);
     }
 
-    public String getRoommateName(String userId) {
-        String userName = "";
+    public String getFriendName(String userId) {
+        String userName = "(알수없음)";
         SQLiteDatabase db = getReadableDatabase();
+        Cursor count = db.rawQuery("SELECT COUNT(*) AS userCount FROM friend WHERE friendId = '" + userId + "'", null);
+        while (count.moveToNext()) {
+            if (count.getInt(0) < 1) return userName;
+        }
+
+        Cursor cursor = db.rawQuery("SELECT IFNULL(NULLIF(friendName, ''), userName) AS friendName FROM friend WHERE friendId = '" + userId + "'", null);
+
+        while (cursor.moveToNext()) {
+            userName = cursor.getString(0);
+        }
+        return userName;
+    }
+
+    public String getRoommateName(String userId) {
+        String userName = "(알수없음)";
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor count = db.rawQuery("SELECT COUNT(*) AS userCount FROM roommate A LEFT JOIN friend B ON A.userId = B.friendId WHERE A.userId = '" + userId + "'", null);
+        while (count.moveToNext()) {
+            if (count.getInt(0) < 1) return userName;
+        }
+
         Cursor cursor = db.rawQuery("SELECT IFNULL(NULLIF(B.friendName, ''), A.userName) AS userName FROM roommate A LEFT JOIN friend B ON A.userId = B.friendId WHERE A.userId = '" + userId + "'", null);
 
         while (cursor.moveToNext()) {
@@ -229,4 +254,23 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         return jsonObject;
     }
+
+    public boolean isNewRoom(String roomId) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) AS roomCount FROM room WHERE roomId = '" + roomId + "'", null);
+        while (cursor.moveToNext()) {
+            if (cursor.getInt(0) > 0) return false;
+        }
+        return true;
+    }
+
+    public boolean isNewRoommate(String roomId, String userId) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) AS roomCount FROM roommate WHERE roomId = '" + roomId + "' AND userId = '" + userId + "'", null);
+        while (cursor.moveToNext()) {
+            if (cursor.getInt(0) > 0) return false;
+        }
+        return true;
+    }
+
 }

@@ -8,8 +8,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
@@ -26,6 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ListView;
 
@@ -36,6 +40,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.URL;
@@ -90,9 +95,16 @@ public class MenuActivity extends AppCompatActivity {
 
     public static class PlaceholderFragment extends Fragment {
 
+        ChatThread chatThread;
+        RoomHandler handler;
+        String ServerIP = "35.163.3.139";
+        //        Socket socket;
+        DataOutputStream out;
+
         private static final String ARG_SECTION_NUMBER = "section_number";
         private static Context myContext;
         ExpandableListView elv;
+        EditText et_roomSerch, et_friendSerch;
         ListView lv_room;
         FriendExpandableAdapter friendExpandableAdapter = new FriendExpandableAdapter();
         RoomAdapter roomAdapter = new RoomAdapter();
@@ -146,14 +158,13 @@ public class MenuActivity extends AppCompatActivity {
                 Intent intent = new Intent(myContext, FriendActivity.class);
                 startActivity(intent);
                 return true;
-            }
-            if (id == R.id.frinend_action_set) {
+            } else if (id == R.id.frinend_action_set) {
                 return true;
-            }
-            if (id == R.id.room_action_addRoom) {
+            } else if (id == R.id.room_action_addRoom) {
                 Intent intent = new Intent(myContext, InviteActivity.class);
                 intent.putExtra("roomId", "0");
                 intent.putExtra("roomGubun", "Multi");
+                intent.putExtra("friend", "");
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
                 startActivity(intent);
                 return true;
@@ -161,9 +172,32 @@ public class MenuActivity extends AppCompatActivity {
             return super.onOptionsItemSelected(item);
         }
 
+        class RoomHandler extends Handler {
+            @Override
+            public void handleMessage(android.os.Message msg) {
+                if (msg.getData().getString("order").equals("newRoom")) getRoom();
+            }
+        }
+
         @Override
         public void onStart() {
             super.onStart();
+//            handler = new RoomHandler();
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    try {
+//                        socket = new Socket(ServerIP, 9999);
+//                        out = new DataOutputStream(socket.getOutputStream());
+//                        out.writeUTF(myId);
+//                        out.writeUTF("0");
+//                        chatThread = new ChatThread(handler, socket);
+//                        chatThread.start();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }).start();
 
             if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
                 friendGroup = new ArrayList<FriendGroup>();
@@ -210,11 +244,52 @@ public class MenuActivity extends AppCompatActivity {
                     elv.expandGroup(i);
                 }
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
-                getRoom();
+                ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+                if (null != activeNetwork) getRoom();
+                else {
+                    JSONObject jsonObject = null;
+                    JSONObject object = null;
+                    JSONArray jsonArray = null;
+                    jsonObject = dbHelper.getRoom("");
+                    try {
+                        jsonArray = jsonObject.getJSONArray("room");
+//                        roomItems = new ArrayList<RoomItem>();
+                        roomAdapter.clearItem();
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            object = jsonArray.getJSONObject(i);
+                            String roomId = object.getString("roomId");
+                            String subTitle = object.getString("subTitle");
+                            String roomGubun = object.getString("roomGubun");
+                            String roomName = object.getString("roomName");
+                            String profilePicture = object.getString("profilePicture");
+
+                            RoomItem roomItem = new RoomItem();
+                            roomItem.id = roomId;
+                            roomItem.gubun = roomGubun;
+                            roomItem.name = roomName;
+                            roomItem.pictrue = profilePicture;
+
+                            roomAdapter.addItem(roomItem);
+//                            roomItems.add(roomItem);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
             }
         }
 
+        //        @Override
+//        public void onStop() {
+//            super.onStop();
+//            try {
+//                if (socket != null) socket.close();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
         @Override
         public void onAttach(Activity activity) {
             super.onAttach(activity);
@@ -230,7 +305,9 @@ public class MenuActivity extends AppCompatActivity {
             if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
 
                 rootView = inflater.inflate(R.layout.fragment_friend, container, false);
+                et_friendSerch = (EditText) rootView.findViewById(R.id.myFriend_et_serch);
                 elv = (ExpandableListView) rootView.findViewById(R.id.elv);
+
                 elv.setAdapter(friendExpandableAdapter);
                 //friendExpandableAdapter.setGroup(globalClass.getFriends());
 
@@ -253,6 +330,7 @@ public class MenuActivity extends AppCompatActivity {
 
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
                 rootView = inflater.inflate(R.layout.fragment_room, container, false);
+
                 lv_room = (ListView) rootView.findViewById(R.id.room_lv_room);
                 lv_room.setAdapter(roomAdapter);
                 lv_room.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -296,6 +374,7 @@ public class MenuActivity extends AppCompatActivity {
                         dbHelper.edit("DROP TABLE room;");
                         dbHelper.edit("DROP TABLE roommate;");
                         dbHelper.edit("DROP TABLE chat;");
+                        dbHelper.edit("DROP TABLE tempChat;");
 
                         preferences = container.getContext().getSharedPreferences("user", 0);
                         SharedPreferences.Editor editor = preferences.edit();
@@ -385,13 +464,15 @@ public class MenuActivity extends AppCompatActivity {
                             stringBuilder.append(object.getString("userName")).append("', '");
                             stringBuilder.append(object.getString("stateMessage")).append("', '");
                             stringBuilder.append(object.getString("profilePicture")).append("', '");
-                            stringBuilder.append(object.getString("backgroundPhoto")).append("')");
+                            stringBuilder.append(object.getString("backgroundPhoto")).append("', '");
+                            stringBuilder.append(object.getString("chatNo")).append("')");
                             dbHelper.edit(stringBuilder.toString());
                         }
 
                         jsonObject = dbHelper.getRoom("");
                         jsonArray = jsonObject.getJSONArray("room");
-                        roomItems = new ArrayList<RoomItem>();
+//                        roomItems = new ArrayList<RoomItem>();
+                        roomAdapter.clearItem();
                         for (int i = 0; i < jsonArray.length(); i++) {
                             object = jsonArray.getJSONObject(i);
                             String roomId = object.getString("roomId");
@@ -406,12 +487,13 @@ public class MenuActivity extends AppCompatActivity {
                             roomItem.name = roomName;
                             roomItem.pictrue = profilePicture;
 
-                            roomItems.add(roomItem);
+                            roomAdapter.addItem(roomItem);
+//                            roomItems.add(roomItem);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                    roomAdapter.setItem(roomItems);
+//                    roomAdapter.setItem(roomItems);
                 }
 
                 @Override
@@ -449,7 +531,6 @@ public class MenuActivity extends AppCompatActivity {
         private void logout(String id) {
             class GetDataJSON extends AsyncTask<String, Void, String> {
                 ProgressDialog loading;
-                GlobalClass globalClass;
 
                 @Override
                 protected void onPreExecute() {

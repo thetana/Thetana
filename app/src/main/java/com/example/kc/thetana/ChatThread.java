@@ -3,7 +3,6 @@ package com.example.kc.thetana;
 import android.os.Bundle;
 import android.os.Handler;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
@@ -35,7 +34,7 @@ public class ChatThread extends Thread {
             while (in != null) {
                 String msg = in.readUTF();
                 JSONObject jsonObject = new JSONObject(msg);
-                android.os.Message  message = new android.os.Message();
+                android.os.Message message = new android.os.Message();
                 Bundle bundle = new Bundle();
                 bundle.putString("order", jsonObject.getString("order"));
                 if (jsonObject.getString("order").equals("sendMsg")) {
@@ -44,17 +43,23 @@ public class ChatThread extends Thread {
                     bundle.putString("room", jsonObject.getString("room"));
                     bundle.putString("chatNo", jsonObject.getString("chatNo"));
                     bundle.putString("gubun", jsonObject.getString("gubun"));
-                }else if(jsonObject.getString("order").equals("roommate")) {
+                    bundle.putString("dtTm", jsonObject.getString("dtTm"));
+                } else if (jsonObject.getString("order").equals("roommate")) {
                     bundle.putString("roommate", msg);
-                }else if(jsonObject.getString("order").equals("state")) {
+                } else if (jsonObject.getString("order").equals("state")) {
                     bundle.putString("room", jsonObject.getString("room"));
                     bundle.putString("userId", jsonObject.getString("userId"));
                     bundle.putString("onOff", jsonObject.getString("onOff"));
                     bundle.putString("chatNo", jsonObject.getString("chatNo"));
-                }else if(jsonObject.getString("order").equals("newmate")) {
+                } else if (jsonObject.getString("order").equals("outmate")) {
+                    bundle.putString("room", jsonObject.getString("room"));
+                    bundle.putString("userId", jsonObject.getString("userId"));
+                }
+                else if(jsonObject.getString("order").equals("newmate")) {
                     bundle.putString("room", jsonObject.getString("room"));
                     bundle.putString("roommate", jsonObject.getString("roommate"));
                 }
+
                 message.setData(bundle);
                 handler.sendMessage(message);
 

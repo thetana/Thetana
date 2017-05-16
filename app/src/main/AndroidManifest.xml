@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -20,6 +22,10 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/colorAccent" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyC0o5yjQh6FdOBRgE5zJfVIuaSySJouW0c" />
 
         <activity
             android:name=".MainActivity"
@@ -58,7 +64,16 @@
         </service>
 
         <activity android:name=".ModifyFriendActivity" />
-        <activity android:name=".ModifyMeActivity"></activity>
+        <activity android:name=".ModifyMeActivity" />
+
+        <receiver
+            android:name=".NetworkReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.net.conn.BACKGROUND_DATA_SETTING_CHANGED"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

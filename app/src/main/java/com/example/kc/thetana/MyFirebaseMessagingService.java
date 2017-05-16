@@ -31,19 +31,21 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         Map<String, String> data = remoteMessage.getData();
 
         if (data.get("what").equals("msg")) {
+            String msg = data.get("message");
+
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("INSERT INTO chat VALUES(null, ");
             stringBuilder.append(data.get("chatNo")).append(", ");
             stringBuilder.append(data.get("roomId")).append(", '");
             stringBuilder.append(data.get("userId")).append("', '");
             stringBuilder.append(data.get("gubun")).append("', '");
-            stringBuilder.append(data.get("message")).append("')");
+            stringBuilder.append(msg).append("', '");
+            stringBuilder.append(data.get("dtTm")).append("')");
             dbHelper.edit(stringBuilder.toString());
 
-//        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-//        ComponentName componentName = activityManager.getRunningTasks(1).get(0).topActivity;
-//        if (!ChatActivity.class.getName().equals(componentName.getClassName())) sendNotification(data);
-            if (!getSharedPreferences("now", 0).getString("room", "").equals(data.get("roomId")))
+            if ((data.get("gubun").equals("message") || data.get("gubun").equals("image"))
+                    && !getSharedPreferences("user", 0).getString("id", "").equals(data.get("userId"))
+                    && !getSharedPreferences("now", 0).getString("room", "").equals(data.get("roomId")))
                 sendNotification(data);
         } else if (data.get("what").equals("updateUser")) {
             StringBuilder stringBuilder = new StringBuilder();
@@ -79,6 +81,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             stringBuilder.append("' WHERE userId = '").append(data.get("userId")).append("'");
             dbHelper.edit(stringBuilder.toString());
         } else if (data.get("what").equals("newRoom")) {
+            if (!dbHelper.isNewRoom(data.get("roomId"))) return;
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("INSERT INTO room VALUES(").append(data.get("roomId")).append(", '");
             stringBuilder.append(data.get("title")).append("', '");
@@ -90,6 +93,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 JSONArray jsonArray = new JSONArray(data.get("roommate"));
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject object = jsonArray.getJSONObject(i);
+                    if (!dbHelper.isNewRoommate(object.getString("roomId"), object.getString("userId")))
+                        return;
                     stringBuilder = new StringBuilder();
                     stringBuilder.append("INSERT INTO roommate VALUES(null, ");
                     stringBuilder.append(object.getString("roomId")).append(", '");
@@ -97,7 +102,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     stringBuilder.append(object.getString("userName")).append("', '");
                     stringBuilder.append(object.getString("stateMessage")).append("', '");
                     stringBuilder.append(object.getString("profilePicture")).append("', '");
-                    stringBuilder.append(object.getString("backgroundPhoto")).append("')");
+                    stringBuilder.append(object.getString("backgroundPhoto")).append("', '");
+                    stringBuilder.append(object.getString("chatNo")).append("')");
                     dbHelper.edit(stringBuilder.toString());
                 }
             } catch (JSONException e) {
@@ -108,6 +114,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 JSONArray jsonArray = new JSONArray(data.get("roommate"));
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject object = jsonArray.getJSONObject(i);
+                    if (!dbHelper.isNewRoommate(object.getString("roomId"), object.getString("userId")))
+                        return;
                     StringBuilder stringBuilder = new StringBuilder();
                     stringBuilder.append("INSERT INTO roommate VALUES(null, ");
                     stringBuilder.append(object.getString("roomId")).append(", '");
@@ -115,12 +123,21 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                     stringBuilder.append(object.getString("userName")).append("', '");
                     stringBuilder.append(object.getString("stateMessage")).append("', '");
                     stringBuilder.append(object.getString("profilePicture")).append("', '");
-                    stringBuilder.append(object.getString("backgroundPhoto")).append("')");
+                    stringBuilder.append(object.getString("backgroundPhoto")).append("', '");
+                    stringBuilder.append(object.getString("chatNo")).append("')");
                     dbHelper.edit(stringBuilder.toString());
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+        } else if (data.get("what").equals("outRoommate")) {
+            data.get("roomId");
+            data.get("userId");
+
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("DELETE FROM roommate WHERE roomId = '").append(data.get("roomId"));
+            stringBuilder.append("' AND userId = '").append(data.get("userId")).append("'");
+            dbHelper.edit(stringBuilder.toString());
         }
     }
 
@@ -129,6 +146,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.putExtra("roomId", messageBody.get("roomId"));
         intent.putExtra("roomGubun", messageBody.get("gubun"));
+        intent.putExtra("isJoin", "N");
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);

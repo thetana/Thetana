@@ -27,6 +27,11 @@ public class RoommateAdapter extends BaseAdapter {
         roommates = itmes;
         notifyDataSetChanged();
     }
+    public void removeItem(int index) {
+        roommates.remove(index);
+        notifyDataSetChanged();
+    }
+
 
     @Override
     public int getCount() {

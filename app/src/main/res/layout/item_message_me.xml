@@ -4,11 +4,18 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/spacing"
     android:gravity="right"
-    android:orientation="horizontal">
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/mymsg_tv_dtTm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:visibility="gone" />
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:background="@android:color/darker_gray"
         android:orientation="vertical"
         android:padding="1dp">
@@ -21,4 +28,10 @@
             android:gravity="right|center" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/mymsg_tv_number"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="right"
+        android:visibility="gone" />
 </LinearLayout>

@@ -7,12 +7,26 @@
     tools:context=".ChatActivity"
     tools:ignore="MergeRootFrame">
 
-    <fragment
-        android:id="@+id/chat"
-        class="com.example.kc.thetana.ChatFragment"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout="@layout/fragment_chat" />
+        android:orientation="vertical">
+
+        <fragment
+            android:id="@+id/map"
+            class="com.google.android.gms.maps.MapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <fragment
+            android:id="@+id/chat"
+            class="com.example.kc.thetana.ChatFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            tools:layout="@layout/fragment_chat" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="310dp"

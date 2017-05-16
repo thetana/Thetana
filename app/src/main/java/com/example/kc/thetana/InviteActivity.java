@@ -14,7 +14,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 public class InviteActivity extends AppCompatActivity {
     Button bt_invite;
@@ -46,6 +45,7 @@ public class InviteActivity extends AppCompatActivity {
                 JSONObject object = jsonArray.getJSONObject(i);
                 inviteItem.id = object.getString("friendId");
                 inviteItem.name = object.getString("friendName");
+                inviteItem.profile = object.getString("profilePicture");
 
                 inviteItems.add(inviteItem);
             }
@@ -83,19 +83,24 @@ public class InviteActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String ids = "";
-                for(int i = 0; i < adapter.getCount(); i++){
-                    InviteItem inviteItem = (InviteItem) adapter.getItem(i);
-                    if(inviteItem.checked) ids = ids + "," + inviteItem.id;
+                if (roomGubun.equals("PtoP")) {
+                    roomId = "0";
+                    ids = ids + "," + getIntent().getStringExtra("friend");
                 }
-                if(ids.equals("")) return;
+                for (int i = 0; i < adapter.getCount(); i++) {
+                    InviteItem inviteItem = (InviteItem) adapter.getItem(i);
+                    if (inviteItem.checked) ids = ids + "," + inviteItem.id;
+                }
+                if (ids.equals("")) return;
                 else ids = ids.substring(1);
 
-                if(roomGubun.equals("PtoP")) roomId = "0";
                 Intent intent = new Intent(InviteActivity.this, ChatActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 intent.putExtra("id", ids);
                 intent.putExtra("roomId", roomId);
                 intent.putExtra("roomGubun", "Multi");
-                intent.putExtra("isJoin", "Y");
+                if (roomId.equals("0")) intent.putExtra("isJoin", "N");
+                else intent.putExtra("isJoin", "Y");
 
                 startActivity(intent);
             }
