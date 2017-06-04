@@ -13,6 +13,12 @@
     <string name="ip">http://35.163.3.139/</string>
     <string name="bucket">gs://thetana-1dad5.appspot.com</string>
 
+    <string-array name="items_map">
+        <item>채팅만</item>
+        <item>반반</item>
+        <item>지도만</item>
+    </string-array>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="server_client_id">724626395885-lpt6kmr61kquhnhknvsbh8r5db1rvdrj.apps.googleusercontent.com</string>

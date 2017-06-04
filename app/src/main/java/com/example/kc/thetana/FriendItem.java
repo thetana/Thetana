@@ -7,4 +7,5 @@ package com.example.kc.thetana;
 public class FriendItem {
     public String id;
     public String name;
+    public String profile = "";
 }

@@ -12,20 +12,37 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <fragment
-            android:id="@+id/map"
-            class="com.google.android.gms.maps.MapFragment"
+        <LinearLayout
+            android:id="@+id/chat_ll_map"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:layout_weight="3"
+            android:orientation="horizontal">
 
-        <fragment
-            android:id="@+id/chat"
-            class="com.example.kc.thetana.ChatFragment"
+            <fragment
+                android:id="@+id/map"
+                class="com.google.android.gms.maps.MapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/chat_ll_chat"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            tools:layout="@layout/fragment_chat" />
+            android:layout_weight="2"
+            android:orientation="horizontal">
+
+            <fragment
+                android:id="@+id/chat"
+                class="com.example.kc.thetana.ChatFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                tools:layout="@layout/fragment_chat" />
+        </LinearLayout>
+
     </LinearLayout>
 
     <LinearLayout
@@ -36,11 +53,38 @@
         android:choiceMode="singleChoice"
         android:orientation="vertical">
 
-        <LinearLayout
+        <RadioGroup
+            android:id="@+id/chat_rg_map"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
+            <RadioButton
+                android:id="@+id/chat_rb_chat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="채팅만 보기" />
+
+            <RadioButton
+                android:id="@+id/chat_rb_half"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="반반 보기" />
+
+            <RadioButton
+                android:id="@+id/chat_rb_map"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="지도만 보기" />
+        </RadioGroup>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
             <Button
                 android:id="@+id/chat_bt_invite"
                 android:layout_width="match_parent"

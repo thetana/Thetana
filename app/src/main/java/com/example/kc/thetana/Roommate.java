@@ -3,6 +3,8 @@ package com.example.kc.thetana;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.model.Marker;
+
 import java.util.HashMap;
 
 /**
@@ -18,6 +20,7 @@ public class Roommate {
     public ImageView iv;
     public TextView tv;
     public HashMap<ImageView, TextView> viewMap = new HashMap<ImageView, TextView>();
+    public Marker marker = null;
     public Roommate(String userId) {
         this.userId = userId;
 

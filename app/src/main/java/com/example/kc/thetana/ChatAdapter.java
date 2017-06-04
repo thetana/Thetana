@@ -173,14 +173,18 @@ public class ChatAdapter extends BaseAdapter {
                 ImageView iv = messages.get(position).iv.get(i);
                 TextView tv = messages.get(position).tv.get(iv);
 
-                if (iv.getParent() != null)
-                    ((ViewGroup) iv.getParent()).removeView(iv);
-                ll_chat.addView(iv);
+                if (iv != null) {
+                    if (iv.getParent() != null)
+                        ((ViewGroup) iv.getParent()).removeView(iv);
+                    ll_chat.addView(iv);
+                }
 
-                if (tv.getParent() != null)
-                    ((ViewGroup) tv.getParent()).removeView(tv);
-                ll_chat.addView(tv);
-                tv.setVisibility(messages.get(position).visibility);
+                if (tv != null) {
+                    if (tv.getParent() != null)
+                        ((ViewGroup) tv.getParent()).removeView(tv);
+                    ll_chat.addView(tv);
+                    tv.setVisibility(messages.get(position).visibility);
+                }
             }
         }
 

@@ -1,31 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="horizontal" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
 
     <ImageView
+        android:id="@+id/addFriend_iv_profile"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        app:srcCompat="@mipmap/ic_launcher"
         android:maxHeight="50dp"
         android:maxWidth="50dp"
         android:minHeight="50dp"
         android:minWidth="50dp"
-        android:id="@+id/addFriend_iv_profile" />
+        app:srcCompat="@mipmap/ic_launcher" />
 
-    <TextView
-        android:text="TextView"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/addFriend_tv_name"
-        android:layout_weight="1" />
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/addFriend_tv_name"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="left|center_vertical" />
+
+        <TextView
+            android:id="@+id/addFriend_tv_id"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="left|center_vertical" />
+    </LinearLayout>
 
     <Button
-        android:text="+"
+        android:id="@+id/addFriend_bt_add"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/addFriend_bt_add"
-        android:layout_weight="3" />
+        android:layout_weight="3"
+        android:text="+" />
 
 </LinearLayout>

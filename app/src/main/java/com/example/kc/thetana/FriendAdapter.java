@@ -9,8 +9,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.androidquery.AQuery;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,8 +37,9 @@ import java.util.Locale;
 public class FriendAdapter extends BaseAdapter {
 
     private ArrayList<FriendItem> friendItems = new ArrayList<FriendItem>();
-    TextView tv_name;
+    TextView tv_name, tv_id;
     Button bt_add;
+    ImageView iv_profile;
     SharedPreferences preferences;
 
     public void addItem(ArrayList<FriendItem> itme) {
@@ -71,13 +75,20 @@ public class FriendAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int position, View convertView, final ViewGroup parent) {
+        final AQuery aq = new AQuery(parent.getContext());
 
         LayoutInflater inflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         convertView = inflater.inflate(R.layout.item_add_friend, parent, false);
 
         tv_name = (TextView) convertView.findViewById(R.id.addFriend_tv_name);
+        tv_id = (TextView) convertView.findViewById(R.id.addFriend_tv_id);
+        iv_profile = (ImageView) convertView.findViewById(R.id.addFriend_iv_profile);
         bt_add = (Button) convertView.findViewById(R.id.addFriend_bt_add);
+
         tv_name.setText(friendItems.get(position).name);
+        tv_id.setText(friendItems.get(position).id);
+        if (!friendItems.get(position).profile.equals(""))
+            aq.id(iv_profile).image(friendItems.get(position).profile);
         bt_add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -127,11 +138,11 @@ public class FriendAdapter extends BaseAdapter {
                             stringBuilder.append(object.getString("profilePicture")).append("', '");
                             stringBuilder.append(object.getString("backgroundPhoto")).append("')");
                             dbHelper.edit(stringBuilder.toString());
+                            Toast.makeText(context, object.getString("userName") + "님을 친구추가 하였습니다.", Toast.LENGTH_LONG).show();
                         }
 
                         friendItems.remove(position);
                         notifyDataSetChanged();
-                        Toast.makeText(context, jsonObject.getString("success"), Toast.LENGTH_LONG).show();
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();

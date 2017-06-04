@@ -2,7 +2,6 @@ package com.example.kc.thetana;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.FragmentManager;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -11,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Base64;
@@ -29,12 +29,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.androidquery.AQuery;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -62,7 +56,7 @@ import java.util.List;
  * Created by kc on 2017-02-25.
  */
 
-public class ChatFragment extends Fragment{
+public class ChatFragment extends Fragment {
 
     static Context context;
     private static final String ARG_PARAM1 = "param1";
@@ -118,6 +112,7 @@ public class ChatFragment extends Fragment{
         room = ((Activity) context).getIntent().getStringExtra("roomId");
         roomGubun = ((Activity) context).getIntent().getStringExtra("roomGubun");
         isJoin = ((Activity) context).getIntent().getStringExtra("isJoin");
+
         JSONObject jsonObject = dbHelper.getRoommate(room);
         JSONArray jsonArray = null;
         try {
@@ -127,7 +122,11 @@ public class ChatFragment extends Fragment{
             roommateList.get(0).userName = myName;
             roommateList.get(0).profilePicture = myProfile;
             roommateList.get(0).onOff = true;
+            roommateList.get(0).iv = new ImageView(context);
             roommateMap.put(myId, roommateList.get(0));
+            aq.id(roommateList.get(0).iv).image(R.mipmap.ic_launcher);
+            if (!roommateList.get(0).profilePicture.equals(""))
+                aq.id(roommateList.get(0).iv).image(roommateList.get(0).profilePicture);
             for (int i = 1; i <= jsonArray.length(); i++) {
                 JSONObject object = jsonArray.getJSONObject(i - 1);
                 roommateList.add(i, new Roommate(object.getString("userId")));
@@ -246,7 +245,6 @@ public class ChatFragment extends Fragment{
         super.onStart();
         handler = new ChatHandler();
         sendHandler = new SendHandler();
-
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         if (null != activeNetwork) {
@@ -286,10 +284,6 @@ public class ChatFragment extends Fragment{
             }).start();
 
         }
-        filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        receiver = new NetworkReceiver(ChatFragment.this);
-        context.registerReceiver(receiver, filter);
-
         JSONObject jsonObject = null;
         JSONObject object = null;
         JSONArray jsonArray = null;
@@ -297,7 +291,7 @@ public class ChatFragment extends Fragment{
             jsonObject = dbHelper.getChat(room);
             jsonArray = jsonObject.getJSONArray("chat");
             adapter.clearMessage();
-            for (int i = 1; i < jsonArray.length(); i++) {
+            for (int i = 0; i < jsonArray.length(); i++) {
                 object = jsonArray.getJSONObject(i);
                 Message message = new Message();
                 if (roommateMap.get(object.getString("userId")) != null)
@@ -323,7 +317,7 @@ public class ChatFragment extends Fragment{
         ((ChatActivity) getActivity()).lv_roommate.setAdapter(roommateAdapter);
 
         if (null == activeNetwork) {
-            for (int i = 1; i < roommateList.size(); i++) {
+            for (int i = 0; i < roommateList.size(); i++) {
                 ll_on.removeView(roommateList.get(i).iv);
                 ll_on.removeView(roommateList.get(i).tv);
                 if (ll_on.getChildCount() < 2) ll_on.setVisibility(View.GONE);
@@ -345,6 +339,10 @@ public class ChatFragment extends Fragment{
             adapter.calculate(roommateList);
         }
 
+        filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        receiver = new NetworkReceiver(ChatFragment.this);
+        context.registerReceiver(receiver, filter);
+
         alive = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -353,9 +351,9 @@ public class ChatFragment extends Fragment{
                         if (socket != null) out.writeUTF("alive");
                         Thread.sleep(3000);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        //e.printStackTrace();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        //e.printStackTrace();
                     }
                 }
             }
@@ -376,7 +374,6 @@ public class ChatFragment extends Fragment{
                             myChatNo = object.getString("chatNo");
                         if (roommateMap.get(object.getString("userId")) != null) {
                             roommateMap.get(object.getString("userId")).chatNo = object.getInt("chatNo");
-
 
                             if (!myId.equals(object.getString("userId"))) {
                                 if (object.getString("onOff").equals("on")) {
@@ -408,8 +405,6 @@ public class ChatFragment extends Fragment{
                                     }
                                 }
                             }
-
-
                         }
                     }
 
@@ -422,7 +417,7 @@ public class ChatFragment extends Fragment{
                 if (msg.getData().getString("order").equals("sendMsg")) {
 
                     final Message message = new Message();
-                    if (msg.getData().getString("user").equals(myId)) {
+                    if (msg.getData().getString("user").equals(myId) || !msg.getData().getString("gubun").equals("message")) {
                         message.name = "";
                         message.profile = "";
                     } else {
@@ -438,74 +433,66 @@ public class ChatFragment extends Fragment{
                     adapter.addMessage(message);
                     if (!isBottom && !message.userId.equals(myId))
                         Toast.makeText(context, message.name + " : " + message.text, Toast.LENGTH_SHORT).show();
-
-//                    new Thread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            while (true) {
-//                                try {
-//                                    JSONObject jsonObject = new JSONObject();
-//                                    jsonObject.put("order", "readMsg");
-//                                    jsonObject.put("chatNo", message.chatNo);
-//                                    out.writeUTF(jsonObject.toString());
-//                                } catch (JSONException e) {
-//                                    e.printStackTrace();
-//                                } catch (IOException e) {
-//                                    e.printStackTrace();
-//                                }
-//                            }
-//                        }
-//                    }).start();
                 } else if (msg.getData().getString("order").equals("state")) {
-                    roommateMap.get(msg.getData().getString("userId")).chatNo = Integer.parseInt(msg.getData().getString("chatNo"));
+                    if (roommateMap.get(msg.getData().getString("userId")) != null) {
+                        roommateMap.get(msg.getData().getString("userId")).chatNo = Integer.parseInt(msg.getData().getString("chatNo"));
 
+                        if (!myId.equals(msg.getData().getString("userId"))) {
+                            if (msg.getData().getString("onOff").equals("on")) {
+                                roommateMap.get(msg.getData().getString("userId")).onOff = true;
+                                int index = adapter.getIndex(msg.getData().getString("chatNo"));
+                                if (index + 1 < adapter.getCount()) {
+                                    ((Message) adapter.getItem(index + 1)).iv.remove(roommateMap.get(msg.getData().getString("userId")).iv);
+                                    ((Message) adapter.getItem(index + 1)).tv.remove(roommateMap.get(msg.getData().getString("userId")).tv);
+                                    adapter.notifyDataSetChanged();
+                                    if (((Message) adapter.getItem(index + 1)).iv.size() < 1)
+                                        adapter.removeItem(index + 1);
+                                }
+                                ll_on.setVisibility(View.VISIBLE);
+                                if (roommateMap.get(msg.getData().getString("userId")).iv.getParent() != null)
+                                    ((ViewGroup) roommateMap.get(msg.getData().getString("userId")).iv.getParent()).removeView(roommateMap.get(msg.getData().getString("userId")).iv);
+                                ll_on.addView(roommateMap.get(msg.getData().getString("userId")).iv);
 
-                    if (!myId.equals(msg.getData().getString("userId"))) {
-                        if (msg.getData().getString("onOff").equals("on")) {
-                            roommateMap.get(msg.getData().getString("userId")).onOff = true;
-                            int index = adapter.getIndex(msg.getData().getString("chatNo"));
-                            if (index + 1 < adapter.getCount()) {
-                                ((Message) adapter.getItem(index + 1)).iv.remove(roommateMap.get(msg.getData().getString("userId")).iv);
-                                ((Message) adapter.getItem(index + 1)).tv.remove(roommateMap.get(msg.getData().getString("userId")).tv);
-                                adapter.notifyDataSetChanged();
-                                if (((Message) adapter.getItem(index + 1)).iv.size() < 1)
-                                    adapter.removeItem(index + 1);
-                            }
-                            ll_on.setVisibility(View.VISIBLE);
-                            if (roommateMap.get(msg.getData().getString("userId")).iv.getParent() != null)
-                                ((ViewGroup) roommateMap.get(msg.getData().getString("userId")).iv.getParent()).removeView(roommateMap.get(msg.getData().getString("userId")).iv);
-                            ll_on.addView(roommateMap.get(msg.getData().getString("userId")).iv);
+                                roommateMap.get(msg.getData().getString("userId")).tv.setVisibility(visibility);
 
-                            roommateMap.get(msg.getData().getString("userId")).tv.setVisibility(visibility);
-
-                            if (roommateMap.get(msg.getData().getString("userId")).tv.getParent() != null)
-                                ((ViewGroup) roommateMap.get(msg.getData().getString("userId")).tv.getParent()).removeView(roommateMap.get(msg.getData().getString("userId")).tv);
-                            ll_on.addView(roommateMap.get(msg.getData().getString("userId")).tv);
-                        } else {
-                            roommateMap.get(msg.getData().getString("userId")).onOff = false;
-                            ll_on.removeView(roommateMap.get(msg.getData().getString("userId")).iv);
-                            ll_on.removeView(roommateMap.get(msg.getData().getString("userId")).tv);
-                            if (ll_on.getChildCount() < 2) ll_on.setVisibility(View.GONE);
-
-                            int index = adapter.getIndex(msg.getData().getString("chatNo"));
-                            if (index + 1 < adapter.getCount() && ((Message) adapter.getItem(index + 1)).gubun.equals("state")) {
-                                ((Message) adapter.getItem(index + 1)).iv.remove(roommateMap.get(msg.getData().getString("userId")).iv);
-                                ((Message) adapter.getItem(index + 1)).iv.add(roommateMap.get(msg.getData().getString("userId")).iv);
-                                ((Message) adapter.getItem(index + 1)).tv.put(roommateMap.get(msg.getData().getString("userId")).iv, roommateMap.get(msg.getData().getString("userId")).tv);
-                                adapter.notifyDataSetChanged();
+                                if (roommateMap.get(msg.getData().getString("userId")).tv.getParent() != null)
+                                    ((ViewGroup) roommateMap.get(msg.getData().getString("userId")).tv.getParent()).removeView(roommateMap.get(msg.getData().getString("userId")).tv);
+                                ll_on.addView(roommateMap.get(msg.getData().getString("userId")).tv);
                             } else {
-                                Message message = new Message();
-                                message.gubun = "state";
-                                message.iv.add(roommateMap.get(msg.getData().getString("userId")).iv);
-                                message.tv.put(roommateMap.get(msg.getData().getString("userId")).iv, roommateMap.get(msg.getData().getString("userId")).tv);
-                                adapter.addMessage(index + 1, message);
+                                roommateMap.get(msg.getData().getString("userId")).onOff = false;
+                                if (roommateMap.get(msg.getData().getString("userId")).marker != null) {
+                                    roommateMap.get(msg.getData().getString("userId")).marker.remove();
+                                    roommateMap.get(msg.getData().getString("userId")).marker = null;
+                                }
+                                ll_on.removeView(roommateMap.get(msg.getData().getString("userId")).iv);
+                                ll_on.removeView(roommateMap.get(msg.getData().getString("userId")).tv);
+                                if (ll_on.getChildCount() < 2) ll_on.setVisibility(View.GONE);
+
+                                int index = adapter.getIndex(msg.getData().getString("chatNo"));
+                                if (index + 1 < adapter.getCount() && ((Message) adapter.getItem(index + 1)).gubun.equals("state")) {
+                                    ((Message) adapter.getItem(index + 1)).iv.remove(roommateMap.get(msg.getData().getString("userId")).iv);
+                                    ((Message) adapter.getItem(index + 1)).iv.add(roommateMap.get(msg.getData().getString("userId")).iv);
+                                    ((Message) adapter.getItem(index + 1)).tv.put(roommateMap.get(msg.getData().getString("userId")).iv, roommateMap.get(msg.getData().getString("userId")).tv);
+                                    adapter.notifyDataSetChanged();
+                                } else {
+                                    Message message = new Message();
+                                    message.gubun = "state";
+                                    message.iv.add(roommateMap.get(msg.getData().getString("userId")).iv);
+                                    message.tv.put(roommateMap.get(msg.getData().getString("userId")).iv, roommateMap.get(msg.getData().getString("userId")).tv);
+                                    adapter.addMessage(index + 1, message);
+                                }
+                                if (roommateMap.get(msg.getData().getString("userId")).marker != null)
+                                    roommateMap.get(msg.getData().getString("userId")).marker.remove();
                             }
                         }
+                        adapter.calculate(roommateList);
                     }
-
-                    adapter.calculate(roommateList);
                 } else if (msg.getData().getString("order").equals("outmate")) {
                     roommateAdapter.removeItem(roommateList.indexOf(roommateMap.get(msg.getData().getString("userId"))));
+
+                    ll_on.removeView(roommateMap.get(msg.getData().getString("userId")).iv);
+                    ll_on.removeView(roommateMap.get(msg.getData().getString("userId")).tv);
+                    if (ll_on.getChildCount() < 2) ll_on.setVisibility(View.GONE);
 
                     if (roommateMap.get(msg.getData().getString("userId")).iv.getParent() != null)
                         ((ViewGroup) roommateMap.get(msg.getData().getString("userId")).iv.getParent()).removeView(roommateMap.get(msg.getData().getString("userId")).iv);
@@ -553,6 +540,17 @@ public class ChatFragment extends Fragment{
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                } else if (msg.getData().getString("order").equals("move")) {
+                    if (roommateMap.get(msg.getData().getString("user")).onOff) {
+                        ((ChatActivity) getActivity()).setCurrentLocation(msg.getData().getString("user")
+                                , msg.getData().getDouble("latitude")
+                                , msg.getData().getDouble("longitude"));
+                    } else {
+                        if (roommateMap.get(msg.getData().getString("user")).marker != null) {
+                            roommateMap.get(msg.getData().getString("user")).marker.remove();
+                            roommateMap.get(msg.getData().getString("user")).marker = null;
+                        }
+                    }
                 }
             }
         }
@@ -574,6 +572,13 @@ public class ChatFragment extends Fragment{
 
     private void sendMessage() {
         if (mInputMessageView.getText().toString().equals("")) return;
+
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        if (null == activeNetwork) {
+            Toast.makeText(context, "네트워크 연결 상태를 확인 하세요.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         new Thread(new Runnable() {
             @Override
@@ -687,14 +692,15 @@ public class ChatFragment extends Fragment{
     @Override
     public void onStop() {
         super.onStop();
-
-        SharedPreferences.Editor editor = context.getSharedPreferences("now", 0).edit();
-        editor.remove("room");
-        editor.commit();
-
         try {
+            context.unregisterReceiver(receiver);
+            SharedPreferences.Editor editor = context.getSharedPreferences("now", 0).edit();
+            editor.remove("room");
+            editor.commit();
             if (socket != null) socket.close();
         } catch (IOException e) {
+            e.printStackTrace();
+        }catch (IllegalArgumentException e){
             e.printStackTrace();
         }
     }
@@ -735,5 +741,82 @@ public class ChatFragment extends Fragment{
                 }
             }
         }).start();
+    }
+
+
+    public void getChat(String roomId, String userId, String chatNo) {
+        class GetDataJSON extends AsyncTask<String, Void, String> {
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+            }
+
+            @Override
+            protected void onPostExecute(String myJSON) {
+                JSONObject jsonObject = null;
+                JSONObject object = null;
+                JSONArray jsonArray = null;
+                try {
+                    jsonObject = new JSONObject(myJSON);
+                    jsonArray = new JSONArray(jsonObject.getString("chat"));
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        object = jsonArray.getJSONObject(i);
+                        if (adapter.getItem(object.getString("chatNo")) == null) {
+                            Message message = new Message();
+                            if (roommateMap.get(object.getString("userId")) != null) {
+                                message.name = roommateMap.get(object.getString("userId")).userName;
+                                message.profile = roommateMap.get(object.getString("userId")).profilePicture;
+                            }
+                            message.chatNo = object.getString("chatNo");
+                            message.userId = object.getString("userId");
+                            message.gubun = object.getString("gubun");
+                            message.text = object.getString("message");
+                            message.dtTm = object.getString("dtTm");
+
+                            adapter.addMessage(message);
+                        }
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            protected String doInBackground(String... params) {
+                try {
+                    String roomId = (String) params[0];
+                    String userId = (String) params[1];
+                    String chatNo = (String) params[2];
+
+                    String link = getString(R.string.ip) + "getMessage.php";
+                    String data = URLEncoder.encode("roomId", "UTF-8") + "=" + URLEncoder.encode(roomId, "UTF-8");
+                    data += "&" + URLEncoder.encode("userId", "UTF-8") + "=" + URLEncoder.encode(userId, "UTF-8");
+                    data += "&" + URLEncoder.encode("chatNo", "UTF-8") + "=" + URLEncoder.encode(chatNo, "UTF-8");
+
+                    URL url = new URL(link);
+                    URLConnection conn = url.openConnection();
+
+                    conn.setDoOutput(true);
+                    OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+
+                    wr.write(data);
+                    wr.flush();
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+                    StringBuilder sb = new StringBuilder();
+                    String json;
+                    while ((json = reader.readLine()) != null) {
+                        sb.append(json + "\n");
+                    }
+                    return sb.toString().trim();
+                } catch (Exception e) {
+                    return new String("Exception: " + e.getMessage());
+                }
+            }
+        }
+
+        GetDataJSON task = new GetDataJSON();
+        task.execute(roomId, userId, chatNo);
     }
 }

@@ -4,9 +4,11 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
+import android.widget.Toast;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -138,6 +140,35 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             stringBuilder.append("DELETE FROM roommate WHERE roomId = '").append(data.get("roomId"));
             stringBuilder.append("' AND userId = '").append(data.get("userId")).append("'");
             dbHelper.edit(stringBuilder.toString());
+        } else if (data.get("what").equals("logout")) {
+            if(getSharedPreferences("user", 0).getString("token", "").equals(data.get("token"))){
+                dbHelper.edit("DROP TABLE friend;");
+                dbHelper.edit("DROP TABLE room;");
+                dbHelper.edit("DROP TABLE roommate;");
+                dbHelper.edit("DROP TABLE chat;");
+                dbHelper.edit("DROP TABLE tempChat;");
+                SharedPreferences.Editor editor = getSharedPreferences("user", 0).edit();
+                editor.clear();
+                editor.commit();
+                editor = getSharedPreferences("now", 0).edit();
+                editor.clear();
+                editor.commit();
+                editor = getSharedPreferences("friend", 0).edit();
+                editor.clear();
+                editor.commit();
+                editor = getSharedPreferences("chatNo", 0).edit();
+                editor.clear();
+                editor.commit();
+                editor = getSharedPreferences("update", 0).edit();
+                editor.clear();
+                editor.commit();
+
+                Intent intent = new Intent(this, LoginActivity.class);
+                intent.putExtra("killed", "killed");
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
         }
     }
 

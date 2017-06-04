@@ -2,13 +2,19 @@ package com.example.kc.thetana;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -29,21 +35,34 @@ public class JoinActivity extends AppCompatActivity {
     private EditText et_rePassword;
     private EditText et_id;
     private EditText et_name;
-    private Button bt_join;
+    private ImageButton bt_join;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_join);
+//        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.argb(255,255,255,255)));
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayShowCustomEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(false);
+        actionBar.setDisplayShowTitleEnabled(false);
+        actionBar.setDisplayShowHomeEnabled(false);
+        LayoutInflater inflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
+        View actionbar = inflater.inflate(R.layout.actionbar_signup, null);
+        actionBar.setCustomView(actionbar);
+        //액션바 양쪽 공백 없애기
+        Toolbar parent = (Toolbar)actionbar.getParent();
+        parent.setContentInsetsAbsolute(0,0);
+        actionBar.setElevation(0); // 그림자 없애기
 
+//        Button btn = (Button) findViewById(R.id.button1);
 
         et_email = (EditText) findViewById(R.id.join_et_email);
         et_password = (EditText) findViewById(R.id.join_et_password);
         et_rePassword = (EditText) findViewById(R.id.join_et_rePassword);
         et_id = (EditText) findViewById(R.id.join_et_id);
         et_name = (EditText) findViewById(R.id.join_et_name);
-        bt_join = (Button) findViewById(R.id.join_bt_join);
-
+        bt_join = (ImageButton) findViewById(R.id.join_bt_join);
 
         bt_join.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,6 +115,7 @@ public class JoinActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
                 if (s.equals("환영합니다.")) {
                     Intent intent = new Intent(JoinActivity.this, LoginActivity.class);
+                    intent.putExtra("killed", "");
                     startActivity(intent);
                 }
             }
@@ -145,5 +165,4 @@ public class JoinActivity extends AppCompatActivity {
         InsertData task = new InsertData();
         task.execute(email, password, rePassword, id, name);
     }
-
 }

@@ -51,12 +51,14 @@
             android:layout_height="match_parent"
             android:layout_weight="2"
             android:gravity="right|center_vertical"
-            android:text="위치공유" />
+            android:text="위치공유"
+            android:visibility="gone" />
 
         <CheckBox
             android:id="@+id/roommate_cb_share"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:visibility="gone" />
 
     </LinearLayout>
 

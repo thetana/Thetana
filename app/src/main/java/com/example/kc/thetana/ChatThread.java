@@ -54,10 +54,14 @@ public class ChatThread extends Thread {
                 } else if (jsonObject.getString("order").equals("outmate")) {
                     bundle.putString("room", jsonObject.getString("room"));
                     bundle.putString("userId", jsonObject.getString("userId"));
-                }
-                else if(jsonObject.getString("order").equals("newmate")) {
+                } else if (jsonObject.getString("order").equals("newmate")) {
                     bundle.putString("room", jsonObject.getString("room"));
                     bundle.putString("roommate", jsonObject.getString("roommate"));
+                } else if (jsonObject.getString("order").equals("move")) {
+                    bundle.putString("room", jsonObject.getString("room"));
+                    bundle.putString("user", jsonObject.getString("user"));
+                    bundle.putDouble("latitude", jsonObject.getDouble("latitude"));
+                    bundle.putDouble("longitude", jsonObject.getDouble("longitude"));
                 }
 
                 message.setData(bundle);

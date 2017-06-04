@@ -107,6 +107,7 @@ public class FriendActivity extends AppCompatActivity {
 
                         friendItem.id = c.getString("userId");
                         friendItem.name = c.getString("userName");
+                        friendItem.profile = c.getString("profilePicture");
 
                         friendItems.add(friendItem);
 //                        adapter.addItem(friendItem);

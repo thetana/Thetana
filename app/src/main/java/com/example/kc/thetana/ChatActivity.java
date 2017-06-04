@@ -2,17 +2,23 @@ package com.example.kc.thetana;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Point;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -21,6 +27,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,9 +35,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
+import com.androidquery.AQuery;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -44,6 +55,9 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
@@ -59,7 +73,8 @@ public class ChatActivity extends AppCompatActivity
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
     String imgDecodableString;
-    String roomId = "", roomGubun = "";
+    AQuery aq;
+    String roomId = "", roomGubun = "", myName, myId;
     Button bt_invite, bt_out;
     private DrawerLayout dl_drawer;
     ListView lv_roommate;
@@ -67,7 +82,8 @@ public class ChatActivity extends AppCompatActivity
     private GoogleApiClient mGoogleApiClient = null;
     private GoogleMap mGoogleMap = null;
     private Marker currentMarker = null;
-
+    ChatFragment chatFragment;
+    MapFragment mapFragment;
     //디폴트 위치, Seoul
     private static final LatLng DEFAULT_LOCATION = new LatLng(37.56, 126.97);
     private static final String TAG = "googlemap_example";
@@ -75,15 +91,20 @@ public class ChatActivity extends AppCompatActivity
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 2002;
     private static final int UPDATE_INTERVAL_MS = 1000;  // 1초
     private static final int FASTEST_UPDATE_INTERVAL_MS = 1000; // 1초
-
+    View marker_user;
+    ImageView iv_marker;
     private AppCompatActivity mActivity;
-    boolean askPermissionOnceAgain = false;
+    boolean askPermissionOnceAgain = false, isFirst = true;
+    RadioButton rb_chat, rb_half, rb_map;
+    LinearLayout ll_map, ll_chat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        myName = getSharedPreferences("user", 0).getString("name", "");
+        myId = getSharedPreferences("user", 0).getString("id", "");
         setContentView(R.layout.activity_chat);
+        chatFragment = (ChatFragment) getFragmentManager().findFragmentById(R.id.chat);
         bt_invite = (Button) findViewById(R.id.chat_bt_invite);
         bt_out = (Button) findViewById(R.id.chat_bt_out);
         dl_drawer = (DrawerLayout) findViewById(R.id.chat_dl_drawer);
@@ -99,7 +120,6 @@ public class ChatActivity extends AppCompatActivity
                 intent.putExtra("roomId", roomId);
                 intent.putExtra("roomGubun", roomGubun);
                 if (roomGubun.equals("PtoP")) {
-                    ChatFragment chatFragment = (ChatFragment) getFragmentManager().findFragmentById(R.id.chat);
                     intent.putExtra("friend", chatFragment.roommateList.get(1).userId);
                 } else intent.putExtra("friend", "");
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
@@ -114,7 +134,6 @@ public class ChatActivity extends AppCompatActivity
                 alertDlg.setPositiveButton("나가기", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        ChatFragment chatFragment = (ChatFragment) getFragmentManager().findFragmentById(R.id.chat);
                         chatFragment.outRoom();
                         dialog.dismiss();
                     }
@@ -130,13 +149,54 @@ public class ChatActivity extends AppCompatActivity
             }
         });
 
+        aq = new AQuery(this);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mActivity = this;
-        MapFragment mapFragment = (MapFragment) getFragmentManager()
-                .findFragmentById(R.id.map);
+        mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+//        mapFragment.setVisibility
+//        marker_user = LayoutInflater.from(this).inflate(R.layout.marker_user, null);
+//        iv_marker = (ImageView) marker_user.findViewById(R.id.user_iv_marker);
+        rb_chat = (RadioButton) findViewById(R.id.chat_rb_chat);
+        rb_half = (RadioButton) findViewById(R.id.chat_rb_half);
+        rb_map = (RadioButton) findViewById(R.id.chat_rb_map);
+        rb_chat.setOnClickListener(optionOnClickListener);
+        rb_half.setOnClickListener(optionOnClickListener);
+        rb_map.setOnClickListener(optionOnClickListener);
+        ll_chat = (LinearLayout) findViewById(R.id.chat_ll_chat);
+        ll_map = (LinearLayout) findViewById(R.id.chat_ll_map);
+        rb_half.setChecked(true);
+
+        if (getSharedPreferences("now", 0).getString("map", "").equals("chat")) {
+            rb_chat.setChecked(true);
+            ll_chat.setVisibility(View.VISIBLE);
+            ll_map.setVisibility(View.GONE);
+        } else if (getSharedPreferences("now", 0).getString("map", "").equals("half")) {
+            rb_half.setChecked(true);
+            ll_chat.setVisibility(View.VISIBLE);
+            ll_map.setVisibility(View.VISIBLE);
+        } else if (getSharedPreferences("now", 0).getString("map", "").equals("map")) {
+            rb_map.setChecked(true);
+            ll_chat.setVisibility(View.GONE);
+            ll_map.setVisibility(View.VISIBLE);
+        }
     }
+
+    RadioButton.OnClickListener optionOnClickListener = new RadioButton.OnClickListener() {
+        public void onClick(View v) {
+            if (rb_chat.isChecked()) {
+                ll_chat.setVisibility(View.VISIBLE);
+                ll_map.setVisibility(View.GONE);
+            } else if (rb_half.isChecked()) {
+                ll_chat.setVisibility(View.VISIBLE);
+                ll_map.setVisibility(View.VISIBLE);
+            } else if (rb_map.isChecked()) {
+                ll_chat.setVisibility(View.GONE);
+                ll_map.setVisibility(View.VISIBLE);
+            }
+        }
+    };
 
     @Override
     public void onResume() {
@@ -158,17 +218,25 @@ public class ChatActivity extends AppCompatActivity
             mGoogleApiClient.disconnect();
         }
         super.onStop();
+        SharedPreferences.Editor editor = getSharedPreferences("now", 0).edit();
+        if (rb_chat.isChecked()) {
+            editor.putString("map", "chat");
+            editor.commit();
+        } else if (rb_half.isChecked()) {
+            editor.putString("map", "half");
+            editor.commit();
+        } else if (rb_map.isChecked()) {
+            editor.putString("map", "map");
+            editor.commit();
+        }
     }
 
     @Override
     public void onPause() {
-
-        //위치 업데이트 중지
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
             mGoogleApiClient.disconnect();
         }
-
         super.onPause();
     }
 
@@ -178,8 +246,7 @@ public class ChatActivity extends AppCompatActivity
             mGoogleApiClient.unregisterConnectionCallbacks(this);
             mGoogleApiClient.unregisterConnectionFailedListener(this);
             if (mGoogleApiClient.isConnected()) {
-                LocationServices.FusedLocationApi
-                        .removeLocationUpdates(mGoogleApiClient, this);
+                LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
                 mGoogleApiClient.disconnect();
             }
         }
@@ -213,30 +280,9 @@ public class ChatActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    private void openGallery() {
-        Intent galleryintent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(galleryintent, 1);
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == RESULT_OK
-                && null != data) {
-//            Uri selectedImage = data.getData();
-//            String[] filePathColumn = {MediaStore.Images.Media.DATA};
-//
-//            Cursor cursor = getContentResolver().query(selectedImage,
-//                    filePathColumn, null, null, null);
-//            // Move to first row
-//            cursor.moveToFirst();
-//            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-//            imgDecodableString = cursor.getString(columnIndex);
-//            cursor.close();
-//            //Log.d("onActivityResult",imgDecodableString);
-//            ChatFragment fragment = (ChatFragment) getFragmentManager().findFragmentById(R.id.chat);
-//            fragment.sendImage(imgDecodableString);
-        }
         switch (requestCode) {
             case GPS_ENABLE_REQUEST_CODE:
                 //사용자가 GPS 활성 시켰는지 검사
@@ -261,25 +307,19 @@ public class ChatActivity extends AppCompatActivity
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-
         Log.d(TAG, "onMapReady");
         mGoogleMap = googleMap;
-
         //런타임 퍼미션 요청 대화상자나 GPS 활성 요청 대화상자 보이기전에
         //지도의 초기위치를 서울로 이동
         setCurrentLocation(null, "위치정보 가져올 수 없음", "위치 퍼미션과 GPS 활성 요부 확인하세요");
-
         mGoogleMap.getUiSettings().setCompassEnabled(true);
         //mGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(15));
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             //API 23 이상이면 런타임 퍼미션 처리 필요
             int hasFineLocationPermission = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION);
             if (hasFineLocationPermission == PackageManager.PERMISSION_DENIED) {
-                ActivityCompat.requestPermissions(mActivity,
-                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                        PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+                ActivityCompat.requestPermissions(mActivity, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
             } else {
                 if (mGoogleApiClient == null) {
                     buildGoogleApiClient();
@@ -302,12 +342,10 @@ public class ChatActivity extends AppCompatActivity
         if (!checkLocationServicesStatus()) {
             showDialogForLocationServiceSetting();
         }
-
         LocationRequest locationRequest = new LocationRequest();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(UPDATE_INTERVAL_MS);
         locationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_MS);
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
@@ -338,12 +376,34 @@ public class ChatActivity extends AppCompatActivity
     }
 
     @Override
-    public void onLocationChanged(Location location) {
-        Log.d(TAG, "onLocationChanged");
-        String markerTitle = getCurrentAddress(location);
-        String markerSnippet = "위도:" + String.valueOf(location.getLatitude()) + " 경도:" + String.valueOf(location.getLongitude());
-        //현재 위치에 마커 생성
-        setCurrentLocation(location, markerTitle, markerSnippet);
+    public void onLocationChanged(final Location location) {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        LocationManager locationManager = (LocationManager) getSystemService(this.LOCATION_SERVICE);
+        if (null != activeNetwork && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            Log.d(TAG, "onLocationChanged");
+            String markerSnippet = "위도:" + String.valueOf(location.getLatitude()) + " 경도:" + String.valueOf(location.getLongitude());
+            setCurrentLocation(location, myName, getCurrentAddress(location));
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject jsonObject = new JSONObject();
+                    try {
+                        jsonObject.put("order", "move");
+                        jsonObject.put("latitude", String.valueOf(location.getLatitude()));
+                        jsonObject.put("longitude", String.valueOf(location.getLongitude()));
+                        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+                        if (null != activeNetwork && chatFragment.out != null) chatFragment.out.writeUTF(jsonObject.toString());
+                    } catch (JSONException e) {
+//                        e.printStackTrace();
+                    } catch (IOException e) {
+//                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        }
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -378,36 +438,114 @@ public class ChatActivity extends AppCompatActivity
         }
     }
 
+    public String getCurrentAddress(double latitude, double longitude) {
+        //지오코더... GPS를 주소로 변환
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        List<Address> addresses;
+        try {
+            addresses = geocoder.getFromLocation(latitude, longitude, 1);
+        } catch (IOException ioException) {
+            //네트워크 문제
+            Toast.makeText(this, "지오코더 서비스 사용불가", Toast.LENGTH_LONG).show();
+            return "지오코더 서비스 사용불가";
+        } catch (IllegalArgumentException illegalArgumentException) {
+            Toast.makeText(this, "잘못된 GPS 좌표", Toast.LENGTH_LONG).show();
+            return "잘못된 GPS 좌표";
+        }
+        if (addresses == null || addresses.size() == 0) {
+            Toast.makeText(this, "주소 미발견", Toast.LENGTH_LONG).show();
+            return "주소 미발견";
+        } else {
+            Address address = addresses.get(0);
+            return address.getAddressLine(0).toString();
+        }
+    }
 
     public boolean checkLocationServicesStatus() {
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
     }
 
-
     public void setCurrentLocation(Location location, String markerTitle, String markerSnippet) {
-        if (currentMarker != null) currentMarker.remove();
-        if (location != null) {
-            LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-            //마커를 원하는 이미지로 변경해줘야함
+        final Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        if (currentMarker != null) {
+            if (location != null) {
+                LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                currentMarker.setPosition(currentLocation);
+                currentMarker.setTitle(markerTitle);
+                currentMarker.setSnippet(markerSnippet);
+                if (isFirst) {
+                    mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation));
+                    isFirst = false;
+                }
+            } else {
+                currentMarker.setPosition(DEFAULT_LOCATION);
+                currentMarker.setTitle(markerTitle);
+                currentMarker.setSnippet(markerSnippet);
+                mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(DEFAULT_LOCATION));
+            }
+
+//            currentMarker.remove();
+        } else {
+            if (location != null) {
+                LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                //마커를 원하는 이미지로 변경해줘야함
+                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.position(currentLocation);
+                markerOptions.title(markerTitle);
+                markerOptions.snippet(markerSnippet);
+                markerOptions.draggable(true);
+//            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                aq.id(iv_marker).image(chatFragment.roommateMap.get(myId).profilePicture);
+                Bitmap bitmap = Bitmap.createScaledBitmap(((BitmapDrawable) chatFragment.roommateMap.get(myId).iv.getDrawable()).getBitmap(), size.x / 10, size.x / 10, true);
+                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(bitmap));
+                currentMarker = mGoogleMap.addMarker(markerOptions);
+                if (isFirst) {
+                    mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation));
+                    isFirst = false;
+                }
+                return;
+            }
             MarkerOptions markerOptions = new MarkerOptions();
-            markerOptions.position(currentLocation);
+            markerOptions.position(DEFAULT_LOCATION);
             markerOptions.title(markerTitle);
             markerOptions.snippet(markerSnippet);
             markerOptions.draggable(true);
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+//        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+            aq.id(iv_marker).image(chatFragment.roommateMap.get(myId).profilePicture);
+            Bitmap bitmap = Bitmap.createScaledBitmap(((BitmapDrawable) chatFragment.roommateMap.get(myId).iv.getDrawable()).getBitmap(), size.x / 10, size.x / 10, true);
+            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(bitmap));
             currentMarker = mGoogleMap.addMarker(markerOptions);
-            mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation));
-            return;
+            mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(DEFAULT_LOCATION));
         }
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(DEFAULT_LOCATION);
-        markerOptions.title(markerTitle);
-        markerOptions.snippet(markerSnippet);
-        markerOptions.draggable(true);
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-        currentMarker = mGoogleMap.addMarker(markerOptions);
-        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(DEFAULT_LOCATION));
+    }
+
+    public void setCurrentLocation(String userId, double latitude, double longitude) {
+        if (chatFragment.roommateMap.get(userId).marker != null) {
+            LatLng currentLocation = new LatLng(latitude, longitude);
+            chatFragment.roommateMap.get(userId).marker.setPosition(currentLocation);
+            chatFragment.roommateMap.get(userId).marker.setTitle(chatFragment.roommateMap.get(userId).userName);
+            chatFragment.roommateMap.get(userId).marker.setSnippet(getCurrentAddress(latitude, longitude));
+//            chatFragment.roommateMap.get(userId).marker.remove();
+        } else {
+            LatLng currentLocation = new LatLng(latitude, longitude);
+            //마커를 원하는 이미지로 변경해줘야함
+            MarkerOptions markerOptions = new MarkerOptions();
+            markerOptions.position(currentLocation);
+            markerOptions.title(chatFragment.roommateMap.get(userId).userName);
+            markerOptions.snippet(getCurrentAddress(latitude, longitude));
+            markerOptions.draggable(true);
+//        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+            final Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            aq.id(iv_marker).image(chatFragment.roommateMap.get(userId).profilePicture);
+            Bitmap bitmap = Bitmap.createScaledBitmap(((BitmapDrawable) chatFragment.roommateMap.get(userId).iv.getDrawable()).getBitmap(), size.x / 10, size.x / 10, true);
+            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(bitmap));
+            chatFragment.roommateMap.get(userId).marker = mGoogleMap.addMarker(markerOptions);
+        }
     }
 
     //여기부터는 런타임 퍼미션 처리을 위한 메소드들
@@ -511,5 +649,4 @@ public class ChatActivity extends AppCompatActivity
         });
         builder.create().show();
     }
-
 }

@@ -89,7 +89,10 @@ public class InviteActivity extends AppCompatActivity {
                 }
                 for (int i = 0; i < adapter.getCount(); i++) {
                     InviteItem inviteItem = (InviteItem) adapter.getItem(i);
-                    if (inviteItem.checked) ids = ids + "," + inviteItem.id;
+                    if (inviteItem.checked) {
+                        if (dbHelper.isNewRoommate(roomId, inviteItem.id))
+                            ids = ids + "," + inviteItem.id;
+                    }
                 }
                 if (ids.equals("")) return;
                 else ids = ids.substring(1);

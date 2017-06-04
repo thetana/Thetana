@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -32,6 +33,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 
@@ -91,6 +93,8 @@ public class MenuActivity extends AppCompatActivity {
         mViewPager.setAdapter(mSectionsPagerAdapter);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+        tabLayout.setTabTextColors(Color.parseColor("#8F959E"), Color.parseColor("#00CFFF"));
+        tabLayout.setSelectedTabIndicatorColor(Color.parseColor("#00CFFF"));
     }
 
     public static class PlaceholderFragment extends Fragment {
@@ -106,6 +110,7 @@ public class MenuActivity extends AppCompatActivity {
         ExpandableListView elv;
         EditText et_roomSerch, et_friendSerch;
         ListView lv_room;
+        TextView tv_top;
         FriendExpandableAdapter friendExpandableAdapter = new FriendExpandableAdapter();
         RoomAdapter roomAdapter = new RoomAdapter();
         Button bt_setting, bt_change, bt_logout, bt_quit;
@@ -202,7 +207,7 @@ public class MenuActivity extends AppCompatActivity {
             if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
                 friendGroup = new ArrayList<FriendGroup>();
                 friendGroup.add(new FriendGroup("프로필"));
-                friendGroup.add(new FriendGroup("즐겨찾기"));
+//                friendGroup.add(new FriendGroup("즐겨찾기"));
                 friendGroup.add(new FriendGroup("친구"));
 
                 preferences = context.getSharedPreferences("user", 0);
@@ -234,7 +239,7 @@ public class MenuActivity extends AppCompatActivity {
                         friendChild.profile = profilePicture;
                         friendChild.background = backgroundPhoto;
 
-                        friendGroup.get(2).friendChildren.add(friendChild);
+                        friendGroup.get(1).friendChildren.add(friendChild);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -256,6 +261,8 @@ public class MenuActivity extends AppCompatActivity {
                         jsonArray = jsonObject.getJSONArray("room");
 //                        roomItems = new ArrayList<RoomItem>();
                         roomAdapter.clearItem();
+                        if(jsonArray.length() > 0) tv_top.setVisibility(View.GONE);
+                        else tv_top.setVisibility(View.VISIBLE);
                         for (int i = 0; i < jsonArray.length(); i++) {
                             object = jsonArray.getJSONObject(i);
                             String roomId = object.getString("roomId");
@@ -331,6 +338,7 @@ public class MenuActivity extends AppCompatActivity {
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
                 rootView = inflater.inflate(R.layout.fragment_room, container, false);
 
+                tv_top = (TextView) rootView.findViewById(R.id.room_tv_top);
                 lv_room = (ListView) rootView.findViewById(R.id.room_lv_room);
                 lv_room.setAdapter(roomAdapter);
                 lv_room.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -402,6 +410,7 @@ public class MenuActivity extends AppCompatActivity {
                         editor.commit();
 
                         Intent intent = new Intent(container.getContext(), LoginActivity.class);
+                        intent.putExtra("killed", "");
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(intent);
@@ -417,8 +426,7 @@ public class MenuActivity extends AppCompatActivity {
             return rootView;
         }
 
-        private void getRoom() {
-
+        public void getRoom() {
             class getData extends AsyncTask<String, Void, String> {
                 ProgressDialog loading;
                 DBHelper dbHelper = new DBHelper(context, "thetana.db", null, 1);
@@ -473,6 +481,8 @@ public class MenuActivity extends AppCompatActivity {
                         jsonArray = jsonObject.getJSONArray("room");
 //                        roomItems = new ArrayList<RoomItem>();
                         roomAdapter.clearItem();
+                        if(jsonArray.length() > 0) tv_top.setVisibility(View.GONE);
+                        else tv_top.setVisibility(View.VISIBLE);
                         for (int i = 0; i < jsonArray.length(); i++) {
                             object = jsonArray.getJSONObject(i);
                             String roomId = object.getString("roomId");
@@ -587,6 +597,11 @@ public class MenuActivity extends AppCompatActivity {
             this.position = position;
 
             return PlaceholderFragment.newInstance(position + 1, context);
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            return super.instantiateItem(container, position);
         }
 
         @Override

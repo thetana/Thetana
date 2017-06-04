@@ -110,6 +110,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 }
 
                 if(!roomName.equals("")) roomName = roomName.substring(1);
+                else roomName = "대화상대없음";
 
                 JSONObject object = new JSONObject();
                 object.put("roomId", cursor.getString(0));

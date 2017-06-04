@@ -8,18 +8,31 @@
     android:orientation="vertical"
     tools:context="com.example.kc.thetana.ModifyMeActivity">
 
-    <ImageView
-        android:id="@+id/modify_m_iv_back"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="3"
-        app:srcCompat="@mipmap/ic_launcher" />
+        android:layout_margin="1dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="1dp">
+
+        <ImageView
+            android:id="@+id/modify_m_iv_back"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="1dp"
+            android:background="#F0F0F0"
+            app:srcCompat="@drawable/back" />
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_margin="1dp"
         android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="1dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -30,12 +43,13 @@
                 android:id="@+id/modify_m_ib_profile"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:background="@android:color/white"
+                android:layout_margin="1dp"
+                android:background="#F0F0F0"
                 android:maxHeight="100dp"
                 android:maxWidth="100dp"
                 android:minHeight="100dp"
                 android:minWidth="100dp"
-                app:srcCompat="@mipmap/ic_launcher" />
+                app:srcCompat="@drawable/profile" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -153,7 +167,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/modify_m_tv_number"
@@ -162,7 +177,7 @@
                 android:layout_weight="4"
                 android:gravity="left|center"
                 android:text="전화번호"
-                android:visibility="invisible" />
+                android:visibility="gone" />
 
             <EditText
                 android:id="@+id/modify_m_et_number"
@@ -172,7 +187,7 @@
                 android:ems="10"
                 android:gravity="right"
                 android:inputType="number"
-                android:visibility="invisible" />
+                android:visibility="gone" />
         </LinearLayout>
 
         <Button

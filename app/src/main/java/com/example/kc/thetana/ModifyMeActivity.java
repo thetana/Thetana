@@ -117,7 +117,7 @@ public class ModifyMeActivity extends AppCompatActivity {
                     }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            Toast.makeText(ModifyMeActivity.this, "이미지 업로드 성공", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(ModifyMeActivity.this, "이미지 업로드 성공", Toast.LENGTH_SHORT).show();
                             mountainsRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                 @Override
                                 public void onSuccess(Uri uri) {
@@ -151,7 +151,7 @@ public class ModifyMeActivity extends AppCompatActivity {
                     }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            Toast.makeText(ModifyMeActivity.this, "이미지 업로드 성공", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(ModifyMeActivity.this, "이미지 업로드 성공", Toast.LENGTH_SHORT).show();
                             mountainsRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                 @Override
                                 public void onSuccess(Uri uri) {
