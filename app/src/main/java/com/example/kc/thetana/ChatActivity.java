@@ -1,6 +1,7 @@
 package com.example.kc.thetana;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -25,20 +26,25 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.androidquery.AQuery;
@@ -75,10 +81,10 @@ public class ChatActivity extends AppCompatActivity
     String imgDecodableString;
     AQuery aq;
     String roomId = "", roomGubun = "", myName, myId;
-    Button bt_invite, bt_out;
+    ImageButton bt_invite, bt_out;
     private DrawerLayout dl_drawer;
     ListView lv_roommate;
-
+    DBHelper dbHelper;
     private GoogleApiClient mGoogleApiClient = null;
     private GoogleMap mGoogleMap = null;
     private Marker currentMarker = null;
@@ -97,20 +103,50 @@ public class ChatActivity extends AppCompatActivity
     boolean askPermissionOnceAgain = false, isFirst = true;
     RadioButton rb_chat, rb_half, rb_map;
     LinearLayout ll_map, ll_chat;
-
+    TextView tb_title;
+    ImageButton ib_get;
+    String roomName = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        aq = new AQuery(this);
         myName = getSharedPreferences("user", 0).getString("name", "");
         myId = getSharedPreferences("user", 0).getString("id", "");
         setContentView(R.layout.activity_chat);
         chatFragment = (ChatFragment) getFragmentManager().findFragmentById(R.id.chat);
-        bt_invite = (Button) findViewById(R.id.chat_bt_invite);
-        bt_out = (Button) findViewById(R.id.chat_bt_out);
+
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayShowCustomEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(false);
+        actionBar.setDisplayShowTitleEnabled(false);
+        actionBar.setDisplayShowHomeEnabled(false);
+        LayoutInflater inflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
+        View actionbar = inflater.inflate(R.layout.actionbar_make, null);
+        actionBar.setCustomView(actionbar);
+        //액션바 양쪽 공백 없애기
+        Toolbar parent = (Toolbar)actionbar.getParent();
+        parent.setContentInsetsAbsolute(0,0);
+        actionBar.setElevation(0); // 그림자 없애기
+
+        tb_title = (TextView) actionbar.findViewById(R.id.tb_title);
+        tb_title.setText("채팅");
+
+        ib_get = (ImageButton) actionbar.findViewById(R.id.ib_get);
+        aq.id(ib_get).image(R.drawable.asset50);
+        ib_get.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (dl_drawer.isDrawerOpen(Gravity.RIGHT)) {
+                    dl_drawer.closeDrawer(Gravity.RIGHT);
+                } else {
+                    dl_drawer.openDrawer(Gravity.RIGHT);
+                }
+            }
+        });
+        bt_invite = (ImageButton) findViewById(R.id.chat_bt_invite);
+        bt_out = (ImageButton) findViewById(R.id.chat_bt_out);
         dl_drawer = (DrawerLayout) findViewById(R.id.chat_dl_drawer);
         lv_roommate = (ListView) findViewById(R.id.chat_lv_roommate);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
         roomId = getIntent().getStringExtra("roomId");
         roomGubun = getIntent().getStringExtra("roomGubun");
         bt_invite.setOnClickListener(new View.OnClickListener() {
@@ -149,7 +185,6 @@ public class ChatActivity extends AppCompatActivity
             }
         });
 
-        aq = new AQuery(this);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mActivity = this;
@@ -182,6 +217,21 @@ public class ChatActivity extends AppCompatActivity
             ll_map.setVisibility(View.VISIBLE);
         }
     }
+
+//    @Override
+//    protected void onStart() {
+//        super.onStart();
+//        for(int i = 0; i < chatFragment.roommateList.size(); i++){
+//            roomName = roomName + "," + chatFragment.roommateList.get(i).userName;
+//        }
+//        if(roomName.equals("") && getIntent().getStringExtra("isJoin").equals("Y")) {
+//            dbHelper = new DBHelper(this, "thetana.db", null, 1);
+//            String[] ids = getIntent().getStringExtra("id").split(",");
+//            for (int i = 0; i < ids.length; i++) {
+//                roomName = roomName + "," + dbHelper.getFriendName(ids[i]);
+//            }
+//        }
+//    }
 
     RadioButton.OnClickListener optionOnClickListener = new RadioButton.OnClickListener() {
         public void onClick(View v) {
@@ -253,12 +303,12 @@ public class ChatActivity extends AppCompatActivity
         super.onDestroy();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_chat, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        MenuInflater inflater = getMenuInflater();
+//        inflater.inflate(R.menu.menu_chat, menu);
+//        return super.onCreateOptionsMenu(menu);
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

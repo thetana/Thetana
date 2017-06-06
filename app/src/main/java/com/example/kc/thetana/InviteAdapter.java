@@ -59,6 +59,13 @@ public class InviteAdapter extends BaseAdapter {
         if (!inviteItems.get(position).profile.equals(""))
             aq.id(iv_profile).image(inviteItems.get(position).profile);
 
+//        ImageView imageView = new ImageView(parent.getContext());
+//        if (!inviteItems.get(position).profile.equals(""))
+//            aq.id(imageView).image(inviteItems.get(position).profile);
+//        ImageHandler handler = new ImageHandler(imageView, iv_profile);
+//        ImageThread thread = new ImageThread(handler, imageView);
+//        thread.start();
+
         return convertView;
     }
 }

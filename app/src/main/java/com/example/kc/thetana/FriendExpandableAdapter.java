@@ -1,6 +1,9 @@
 package com.example.kc.thetana;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,13 +23,23 @@ import java.util.ArrayList;
 
 public class FriendExpandableAdapter extends BaseExpandableListAdapter {
     ArrayList<FriendGroup> group = new ArrayList<FriendGroup>();
+    ImageHelper imageHelper;
 
     FriendExpandableAdapter() {
 
     }
 
     public void setGroup(ArrayList<FriendGroup> friendGroup) {
+        group.clear();
         group = friendGroup;
+        notifyDataSetChanged();
+    }
+    public void addGroup(FriendGroup friendGroup) {
+        group.add(friendGroup);
+        notifyDataSetChanged();
+    }
+    public void addChild(int index, FriendChild friendChild) {
+        group.get(index).friendChildren.add(friendChild);
         notifyDataSetChanged();
     }
 
@@ -81,21 +94,28 @@ public class FriendExpandableAdapter extends BaseExpandableListAdapter {
 
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference storageRef = storage.getReferenceFromUrl(parent.getContext().getString(R.string.bucket));
-        final AQuery aq = new AQuery(parent.getContext());
         TextView tv_name = null;
         TextView tv_state = null;
         LayoutInflater inflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         convertView = inflater.inflate(R.layout.item_child, parent, false);
+        final AQuery aq = new AQuery(parent.getContext());
+        final ImageView iv_profile = (ImageView) convertView.findViewById(R.id.child_iv_profile);
 
         tv_name = (TextView) convertView.findViewById(R.id.child_tv_name);
         tv_state = (TextView) convertView.findViewById(R.id.child_tv_state);
-        final ImageView iv_profile = (ImageView) convertView.findViewById(R.id.child_iv_profile);
         tv_name.setText(group.get(groupPosition).friendChildren.get(childPosition).name);
         tv_state.setText(group.get(groupPosition).friendChildren.get(childPosition).state);
+
         if (!group.get(groupPosition).friendChildren.get(childPosition).profile.equals(""))
             aq.id(iv_profile).image(group.get(groupPosition).friendChildren.get(childPosition).profile);
+
+//        ImageView imageView = new ImageView(parent.getContext());
+//        if (!group.get(groupPosition).friendChildren.get(childPosition).profile.equals(""))
+//            aq.id(imageView).image(group.get(groupPosition).friendChildren.get(childPosition).profile);
+//        ImageHandler handler = new ImageHandler(imageView, iv_profile);
+//        ImageThread thread = new ImageThread(handler, imageView);
+//        thread.start();
+
         return convertView;
     }
 

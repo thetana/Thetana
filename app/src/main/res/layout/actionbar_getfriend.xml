@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:background="@android:color/white"
+    android:gravity="center_vertical"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp">
+
+    <ImageView
+        android:id="@+id/imageView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/asset36"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <ImageButton
+        android:id="@+id/bt_re"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:background="@android:color/white"
+        android:scaleType="fitCenter"
+        app:srcCompat="@drawable/asset16" />
+
+    <ImageView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="25dp"
+        android:layout_gravity="center"
+        android:background="@android:color/white"
+        android:scaleType="fitStart"
+        app:srcCompat="@drawable/asset39"
+        android:layout_marginLeft="26dp"
+        android:layout_marginStart="26dp"
+        android:layout_alignTop="@+id/bt_re"
+        android:layout_toRightOf="@+id/bt_re"
+        android:layout_toEndOf="@+id/bt_re" />
+
+</RelativeLayout>

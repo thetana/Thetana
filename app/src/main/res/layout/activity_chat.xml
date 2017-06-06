@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/chat_dl_drawer"
     android:layout_width="match_parent"
@@ -49,65 +50,71 @@
         android:layout_width="310dp"
         android:layout_height="match_parent"
         android:layout_gravity="right"
-        android:background="#EDEDED"
+        android:background="#DCDCE0"
         android:choiceMode="singleChoice"
         android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right|center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/chat_bt_invite"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:scaleType="fitCenter"
+                android:text="친구초대"
+                app:srcCompat="@drawable/asset63" />
+
+            <ImageButton
+                android:id="@+id/chat_bt_out"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:scaleType="fitCenter"
+                android:text="나가기"
+                app:srcCompat="@drawable/asset64" />
+        </LinearLayout>
 
         <RadioGroup
             android:id="@+id/chat_rg_map"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
             <RadioButton
                 android:id="@+id/chat_rb_chat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="채팅만 보기" />
+                android:text="채팅만 보기"
+                app:buttonTint="#00CFFF" />
 
             <RadioButton
                 android:id="@+id/chat_rb_half"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="반반 보기" />
+                android:text="반반 보기"
+                app:buttonTint="#00CFFF" />
 
             <RadioButton
                 android:id="@+id/chat_rb_map"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="지도만 보기" />
+                android:text="지도만 보기"
+                app:buttonTint="#00CFFF" />
         </RadioGroup>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <Button
-                android:id="@+id/chat_bt_invite"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="친구초대" />
-
-            <Button
-                android:id="@+id/chat_bt_out"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="나가기" />
-        </LinearLayout>
 
         <TextView
             android:id="@+id/chat_tv_roommate"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
-            android:gravity="center"
-            android:text="-친구목록-" />
+            android:layout_height="30dp"
+            android:background="#AFAFB0"
+            android:gravity="left|center_vertical"
+            android:text="친구" />
 
         <ListView
             android:id="@+id/chat_lv_roommate"

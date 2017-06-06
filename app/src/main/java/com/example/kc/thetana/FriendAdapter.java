@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,7 +39,7 @@ public class FriendAdapter extends BaseAdapter {
 
     private ArrayList<FriendItem> friendItems = new ArrayList<FriendItem>();
     TextView tv_name, tv_id;
-    Button bt_add;
+    ImageButton bt_add;
     ImageView iv_profile;
     SharedPreferences preferences;
 
@@ -83,12 +84,10 @@ public class FriendAdapter extends BaseAdapter {
         tv_name = (TextView) convertView.findViewById(R.id.addFriend_tv_name);
         tv_id = (TextView) convertView.findViewById(R.id.addFriend_tv_id);
         iv_profile = (ImageView) convertView.findViewById(R.id.addFriend_iv_profile);
-        bt_add = (Button) convertView.findViewById(R.id.addFriend_bt_add);
+        bt_add = (ImageButton) convertView.findViewById(R.id.addFriend_bt_add);
 
         tv_name.setText(friendItems.get(position).name);
         tv_id.setText(friendItems.get(position).id);
-        if (!friendItems.get(position).profile.equals(""))
-            aq.id(iv_profile).image(friendItems.get(position).profile);
         bt_add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -96,6 +95,15 @@ public class FriendAdapter extends BaseAdapter {
             }
         });
 
+        if (!friendItems.get(position).profile.equals(""))
+            aq.id(iv_profile).image(friendItems.get(position).profile);
+
+//        ImageView imageView = new ImageView(parent.getContext());
+//        if (!friendItems.get(position).profile.equals(""))
+//            aq.id(imageView).image(friendItems.get(position).profile);
+//        ImageHandler handler = new ImageHandler(imageView, iv_profile);
+//        ImageThread thread = new ImageThread(handler, imageView);
+//        thread.start();
 
         return convertView;
     }

@@ -41,9 +41,7 @@
             android:name=".LoginActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".MenuActivity" />
-        <activity
-            android:name=".FriendActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".FriendActivity" />
         <activity
             android:name=".ProfileActivity"
             android:theme="@style/AppTheme.NoActionBar" />
@@ -69,7 +67,7 @@
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.net.conn.BACKGROUND_DATA_SETTING_CHANGED"/>
+                <action android:name="android.net.conn.BACKGROUND_DATA_SETTING_CHANGED" />
             </intent-filter>
         </receiver>
     </application>

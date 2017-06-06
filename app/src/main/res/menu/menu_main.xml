@@ -4,10 +4,10 @@
         android:id="@+id/frinend_action_addFriend"
         android:orderInCategory="100"
         android:title="친구추가"
-        app:showAsAction="never" />
+        app:showAsAction="always" />
     <item
         android:id="@+id/frinend_action_set"
         android:orderInCategory="100"
         android:title="새로고침"
-        app:showAsAction="never" />
+        app:showAsAction="always" />
 </menu>

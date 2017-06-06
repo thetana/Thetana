@@ -148,20 +148,6 @@ public class ChatAdapter extends BaseAdapter {
                     aq.id(iv_profile).image(messages.get(position).profile);
             }
         }
-//        else if (messages.get(position).gubun.equals("image")) {
-//            if (messages.get(position).userId.equals(myId)) {
-//                convertView = inflater.inflate(R.layout.item_message_me, parent, false);
-//                tv_message = (TextView) convertView.findViewById(R.id.mymsg_tv_message);
-//                tv_message.setText(messages.get(position).text);
-//            } else {
-//                convertView = inflater.inflate(R.layout.item_message_friend, parent, false);
-//                tv_name = (TextView) convertView.findViewById(R.id.fmsg_tv_name);
-//                tv_message = (TextView) convertView.findViewById(R.id.fmsg_tv_message);
-//                iv_profile = (ImageView) convertView.findViewById(R.id.fmsg_iv_profile);
-//                tv_message.setText(messages.get(position).text);
-//                tv_name.setText(messages.get(position).name);
-//            }
-//        }
         else if (messages.get(position).gubun.equals("invite") || messages.get(position).gubun.equals("out")) {
             convertView = inflater.inflate(R.layout.item_system, parent, false);
             tv_message = (TextView) convertView.findViewById(R.id.system_tv_mag);

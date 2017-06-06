@@ -2,8 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal">
+    android:layout_height="70dp"
+    android:background="@android:color/white"
+    android:gravity="center_vertical"
+    android:maxHeight="70dp"
+    android:minHeight="70dp"
+    android:orientation="horizontal"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp">
 
     <ImageView
         android:id="@+id/addFriend_iv_profile"
@@ -13,12 +19,13 @@
         android:maxWidth="50dp"
         android:minHeight="50dp"
         android:minWidth="50dp"
-        app:srcCompat="@mipmap/ic_launcher" />
+        app:srcCompat="@drawable/asset37" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1"
+        android:layout_weight="2"
+        android:background="@android:color/white"
         android:orientation="vertical">
 
         <TextView
@@ -34,13 +41,16 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="left|center_vertical" />
+
     </LinearLayout>
 
-    <Button
+    <ImageButton
         android:id="@+id/addFriend_bt_add"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="3"
-        android:text="+" />
-
+        android:layout_weight="9"
+        android:background="@android:color/white"
+        android:scaleType="fitCenter"
+        android:text="+"
+        app:srcCompat="@drawable/asset42" />
 </LinearLayout>

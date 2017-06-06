@@ -3,10 +3,14 @@ package com.example.kc.thetana;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 
 import org.json.JSONArray;
@@ -28,7 +32,7 @@ import java.util.ArrayList;
 
 public class FriendActivity extends AppCompatActivity {
     EditText et_id;
-    Button bt_serch;
+    ImageButton bt_serch;
     ListView lv_friend;
     FriendAdapter adapter;
     SharedPreferences preferences;
@@ -38,9 +42,21 @@ public class FriendActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_friend);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayShowCustomEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(false);
+        actionBar.setDisplayShowTitleEnabled(false);
+        actionBar.setDisplayShowHomeEnabled(false);
+        LayoutInflater inflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
+        View actionbar = inflater.inflate(R.layout.actionbar_signup, null);
+        actionBar.setCustomView(actionbar);
+        //액션바 양쪽 공백 없애기
+        Toolbar parent = (Toolbar)actionbar.getParent();
+        parent.setContentInsetsAbsolute(0,0);
+        actionBar.setElevation(0); // 그림자 없애기
 
         et_id = (EditText) findViewById(R.id.friend_et_id);
-        bt_serch = (Button) findViewById(R.id.friend_bt_serch);
+        bt_serch = (ImageButton) findViewById(R.id.friend_bt_serch);
         lv_friend = (ListView) findViewById(R.id.friend_lv_friend);
         adapter = new FriendAdapter();
         lv_friend.setAdapter(adapter);

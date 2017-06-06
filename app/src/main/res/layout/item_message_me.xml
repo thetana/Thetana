@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/spacing"
+    android:background="@android:color/white"
     android:gravity="right"
     android:orientation="vertical">
 
@@ -10,28 +11,23 @@
         android:id="@+id/mymsg_tv_dtTm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@android:color/white"
         android:gravity="center"
         android:visibility="gone" />
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/mymsg_tv_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@android:color/darker_gray"
-        android:orientation="vertical"
-        android:padding="1dp">
-
-        <TextView
-            android:id="@+id/mymsg_tv_message"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:gravity="right|center" />
-    </LinearLayout>
+        android:background="@drawable/asset57"
+        android:gravity="center"
+        android:textColor="@android:color/white" />
 
     <TextView
         android:id="@+id/mymsg_tv_number"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@android:color/white"
         android:gravity="right"
         android:visibility="gone" />
 </LinearLayout>

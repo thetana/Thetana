@@ -21,7 +21,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -32,6 +34,8 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -62,15 +66,16 @@ public class MenuActivity extends AppCompatActivity {
     Menu myMenu;
     static DBHelper dbHelper;
     static String myId;
-
+    static ActionBar actionBar;
+    static LayoutInflater layoutInflater;
+    static ImageButton ib_get;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
+        layoutInflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
 
-//        ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE);
-//        ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
-//        ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA);
+        actionBar = getSupportActionBar();
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                 || ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                 || ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
@@ -83,27 +88,17 @@ public class MenuActivity extends AppCompatActivity {
 
         context = MenuActivity.this;
         myId = getSharedPreferences("user", 0).getString("id", "");
-        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), MenuActivity.this);
-        // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+        tabLayout.setBackgroundColor(Color.parseColor("#FFFFFF"));
         tabLayout.setTabTextColors(Color.parseColor("#8F959E"), Color.parseColor("#00CFFF"));
         tabLayout.setSelectedTabIndicatorColor(Color.parseColor("#00CFFF"));
     }
 
     public static class PlaceholderFragment extends Fragment {
-
-        ChatThread chatThread;
-        RoomHandler handler;
-        String ServerIP = "35.163.3.139";
-        //        Socket socket;
-        DataOutputStream out;
 
         private static final String ARG_SECTION_NUMBER = "section_number";
         private static Context myContext;
@@ -113,7 +108,7 @@ public class MenuActivity extends AppCompatActivity {
         TextView tv_top;
         FriendExpandableAdapter friendExpandableAdapter = new FriendExpandableAdapter();
         RoomAdapter roomAdapter = new RoomAdapter();
-        Button bt_setting, bt_change, bt_logout, bt_quit;
+        LinearLayout bt_setting, bt_change, bt_logout, bt_quit;
         SharedPreferences preferences;
         private ArrayList<FriendGroup> friendGroup = new ArrayList<FriendGroup>();
         private ArrayList<RoomItem> roomItems = new ArrayList<RoomItem>();
@@ -145,11 +140,63 @@ public class MenuActivity extends AppCompatActivity {
         @Override
         public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
             if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
-                inflater.inflate(R.menu.menu_main, menu);
+//                inflater.inflate(R.menu.menu_main, menu);
+
+                actionBar.setDisplayShowCustomEnabled(true);
+                actionBar.setDisplayHomeAsUpEnabled(false);
+                actionBar.setDisplayShowTitleEnabled(false);
+                actionBar.setDisplayShowHomeEnabled(false);
+                View actionbar = layoutInflater.inflate(R.layout.actionbar_friend, null);
+                actionBar.setCustomView(actionbar);
+                //액션바 양쪽 공백 없애기
+                Toolbar parent = (Toolbar)actionbar.getParent();
+                parent.setContentInsetsAbsolute(0,0);
+                actionBar.setElevation(0); // 그림자 없애기
+                ib_get = (ImageButton) actionbar.findViewById(R.id.ib_get);
+                ib_get.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(myContext, FriendActivity.class);
+                        startActivity(intent);
+                    }
+                });
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
-                inflater.inflate(R.menu.menu_room, menu);
+//                inflater.inflate(R.menu.menu_room, menu);
+                actionBar.setDisplayShowCustomEnabled(true);
+                actionBar.setDisplayHomeAsUpEnabled(false);
+                actionBar.setDisplayShowTitleEnabled(false);
+                actionBar.setDisplayShowHomeEnabled(false);
+                View actionbar = layoutInflater.inflate(R.layout.actionbar_room, null);
+                actionBar.setCustomView(actionbar);
+                //액션바 양쪽 공백 없애기
+                Toolbar parent = (Toolbar)actionbar.getParent();
+                parent.setContentInsetsAbsolute(0,0);
+                actionBar.setElevation(0); // 그림자 없애기
+                ib_get = (ImageButton) actionbar.findViewById(R.id.ib_get);
+                ib_get.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(myContext, InviteActivity.class);
+                        intent.putExtra("roomId", "0");
+                        intent.putExtra("roomGubun", "Multi");
+                        intent.putExtra("friend", "");
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                        startActivity(intent);
+                    }
+                });
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
-                //inflater.inflate(R.menu.menu_main, menu);
+                actionBar.setDisplayShowCustomEnabled(true);
+                actionBar.setDisplayHomeAsUpEnabled(false);
+                actionBar.setDisplayShowTitleEnabled(false);
+                actionBar.setDisplayShowHomeEnabled(false);
+                View actionbar = layoutInflater.inflate(R.layout.actionbar_room, null);
+                actionBar.setCustomView(actionbar);
+                //액션바 양쪽 공백 없애기
+                Toolbar parent = (Toolbar)actionbar.getParent();
+                parent.setContentInsetsAbsolute(0,0);
+                actionBar.setElevation(0); // 그림자 없애기
+                ib_get = (ImageButton) actionbar.findViewById(R.id.ib_get);
+                ib_get.setVisibility(View.GONE);
             }
 
             super.onCreateOptionsMenu(menu, inflater);
@@ -187,24 +234,9 @@ public class MenuActivity extends AppCompatActivity {
         @Override
         public void onStart() {
             super.onStart();
-//            handler = new RoomHandler();
-//            new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    try {
-//                        socket = new Socket(ServerIP, 9999);
-//                        out = new DataOutputStream(socket.getOutputStream());
-//                        out.writeUTF(myId);
-//                        out.writeUTF("0");
-//                        chatThread = new ChatThread(handler, socket);
-//                        chatThread.start();
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }).start();
 
             if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
+                friendExpandableAdapter.clearGroup();
                 friendGroup = new ArrayList<FriendGroup>();
                 friendGroup.add(new FriendGroup("프로필"));
 //                friendGroup.add(new FriendGroup("즐겨찾기"));
@@ -218,6 +250,8 @@ public class MenuActivity extends AppCompatActivity {
                 friendGroup.get(0).friendChildren.get(0).profile = preferences.getString("profilePicture", "");
                 friendGroup.get(0).friendChildren.get(0).background = preferences.getString("backgroundPhoto", "");
 
+                friendExpandableAdapter.addGroup(friendGroup.get(0));
+                friendExpandableAdapter.addGroup(friendGroup.get(1));
                 try {
                     JSONObject jsonObject = dbHelper.getFriends("");
                     JSONArray jsonArray = jsonObject.getJSONArray("friend");
@@ -239,15 +273,17 @@ public class MenuActivity extends AppCompatActivity {
                         friendChild.profile = profilePicture;
                         friendChild.background = backgroundPhoto;
 
-                        friendGroup.get(1).friendChildren.add(friendChild);
+//                        friendGroup.get(1).friendChildren.add(friendChild);
+                        friendExpandableAdapter.addChild(1, friendChild);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                friendExpandableAdapter.setGroup(friendGroup);
+                //friendExpandableAdapter.setGroup(friendGroup);
                 for (int i = 0; i < friendExpandableAdapter.getGroupCount(); i++) {
                     elv.expandGroup(i);
                 }
+                friendExpandableAdapter.notifyDataSetChanged();
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
                 ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
@@ -288,15 +324,6 @@ public class MenuActivity extends AppCompatActivity {
             }
         }
 
-        //        @Override
-//        public void onStop() {
-//            super.onStop();
-//            try {
-//                if (socket != null) socket.close();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
         @Override
         public void onAttach(Activity activity) {
             super.onAttach(activity);
@@ -356,10 +383,10 @@ public class MenuActivity extends AppCompatActivity {
                 });
             } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3) {
                 rootView = inflater.inflate(R.layout.fragment_setting, container, false);
-                bt_setting = (Button) rootView.findViewById(R.id.setting_bt_setting);
-                bt_change = (Button) rootView.findViewById(R.id.setting_bt_change);
-                bt_logout = (Button) rootView.findViewById(R.id.setting_bt_logout);
-                bt_quit = (Button) rootView.findViewById(R.id.setting_bt_quit);
+                bt_setting = (LinearLayout) rootView.findViewById(R.id.setting_bt_setting);
+                bt_change = (LinearLayout) rootView.findViewById(R.id.setting_bt_change);
+                bt_logout = (LinearLayout) rootView.findViewById(R.id.setting_bt_logout);
+                bt_quit = (LinearLayout) rootView.findViewById(R.id.setting_bt_quit);
                 bt_setting.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -498,12 +525,10 @@ public class MenuActivity extends AppCompatActivity {
                             roomItem.pictrue = profilePicture;
 
                             roomAdapter.addItem(roomItem);
-//                            roomItems.add(roomItem);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-//                    roomAdapter.setItem(roomItems);
                 }
 
                 @Override

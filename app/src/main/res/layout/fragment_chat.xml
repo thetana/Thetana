@@ -4,30 +4,16 @@
     android:id="@+id/fragment_chat"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/asset14"
     android:orientation="vertical"
     tools:context=".ChatFragment">
-
-    <TextView
-        android:id="@+id/chat_tv_notify"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:visibility="gone" />
-
-    <ListView
-        android:id="@+id/chat_lv_list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:divider="#00000000"
-        android:dividerHeight="10dp"
-        android:transcriptMode="normal" />
 
     <LinearLayout
         android:id="@+id/chat_ll_on"
         android:layout_width="match_parent"
-        android:layout_height="20dp"
-        android:gravity="center"
+        android:layout_height="40dp"
+        android:background="@drawable/asset59"
+        android:gravity="right|center_vertical"
         android:orientation="horizontal"
         android:visibility="gone">
 
@@ -35,38 +21,55 @@
             android:id="@+id/chat_tv_on"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="접속중 : " />
+            android:text=": "
+            android:textColor="#DCDCE0" />
 
     </LinearLayout>
 
+    <ListView
+        android:id="@+id/chat_lv_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@android:color/white"
+        android:divider="#00000000"
+        android:dividerHeight="10dp"
+        android:transcriptMode="normal" />
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="5dp"
+        android:background="#DCDCE0"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin">
+        android:orientation="horizontal">
 
         <EditText
             android:id="@+id/chat_et_message"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="5dp"
             android:layout_weight="1"
-            android:hint="@string/prompt_message"
+            android:background="#AFAFB0"
             android:imeActionId="@+id/send"
             android:imeActionLabel="@string/action_send"
             android:imeOptions="actionSend"
             android:inputType="text"
             android:maxLines="1"
-            android:singleLine="true" />
+            android:paddingLeft="5dp"
+            android:singleLine="true"
+            android:textColor="#33373D"
+            android:textCursorDrawable="@null" />
 
         <ImageButton
             android:id="@+id/chat_bt_send"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="6"
-            android:contentDescription="@string/action_send"
-            android:src="@android:drawable/ic_menu_send" />
+            android:layout_weight="8"
+            android:scaleType="fitCenter"
+            android:src="@drawable/asset58" />
 
     </LinearLayout>
 

@@ -20,9 +20,8 @@ import java.util.ArrayList;
 public class RoomAdapter extends BaseAdapter {
 
     private ArrayList<RoomItem> roomItems = new ArrayList<RoomItem>();
-    TextView tv_name, tv_msg, tv_dtTm, tv_number;
+    TextView tv_name, tv_dtTm, tv_number;
     ImageView iv_pictrue;
-    Button bt_add;
 
     public void setItem(ArrayList<RoomItem> itme) {
         roomItems = itme;
@@ -60,17 +59,25 @@ public class RoomAdapter extends BaseAdapter {
         convertView = inflater.inflate(R.layout.item_room, parent, false);
 
         tv_name = (TextView) convertView.findViewById(R.id.itemRoom_tv_name);
-        tv_msg = (TextView) convertView.findViewById(R.id.itemRoom_tv_msg);
         tv_dtTm = (TextView) convertView.findViewById(R.id.itemRoom_tv_dtTm);
         tv_number = (TextView) convertView.findViewById(R.id.itemRoom_tv_number);
         iv_pictrue = (ImageView) convertView.findViewById(R.id.itemRoom_iv_pictrue);
 
         tv_name.setText(roomItems.get(position).name);
-        tv_msg.setText(roomItems.get(position).msg);
         tv_dtTm.setText(roomItems.get(position).dtTm);
         tv_number.setText(roomItems.get(position).number);
+//        if (!roomItems.get(position).pictrue.equals(""))
+//            aq.id(iv_pictrue).image(roomItems.get(position).pictrue);
+
         if (!roomItems.get(position).pictrue.equals(""))
             aq.id(iv_pictrue).image(roomItems.get(position).pictrue);
+
+//        ImageView imageView = new ImageView(parent.getContext());
+//        if (!roomItems.get(position).pictrue.equals(""))
+//            aq.id(imageView).image(roomItems.get(position).pictrue);
+//        ImageHandler handler = new ImageHandler(imageView, iv_pictrue);
+//        ImageThread thread = new ImageThread(handler, imageView);
+//        thread.start();
 
         return convertView;
     }
