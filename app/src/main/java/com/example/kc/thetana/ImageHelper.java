@@ -19,7 +19,7 @@ public class ImageHelper {
                 bitmap.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(output);
 
-        final int color = 0xff424242;
+        final int color = 0xFFFFFFFF;
         final Paint paint = new Paint();
         if(bitmap.getWidth() >= bitmap.getHeight()) size = bitmap.getWidth();
         else if(bitmap.getHeight() >= bitmap.getWidth()) size = bitmap.getHeight();
@@ -27,7 +27,7 @@ public class ImageHelper {
         final RectF rectF = new RectF(rect);
 
         paint.setAntiAlias(true);
-        canvas.drawARGB(0, 0, 0, 0);
+        canvas.drawARGB(0, 255, 255, 255);
         paint.setColor(color);
         canvas.drawOval(rectF, paint);
 

@@ -59,6 +59,13 @@ public class RoommateAdapter extends BaseAdapter {
         if (!roommates.get(position).profilePicture.equals(""))
             aq.id(iv_profile).image(roommates.get(position).profilePicture);
 
+//        ImageView imageView = new ImageView(parent.getContext());
+//        if (!roommates.get(position).profilePicture.equals(""))
+//            aq.id(imageView).image(roommates.get(position).profilePicture);
+//        ImageHandler handler = new ImageHandler(imageView, iv_profile);
+//        ImageThread thread = new ImageThread(handler, imageView);
+//        thread.start();
+
         return convertView;
     }
 }

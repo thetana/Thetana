@@ -42,9 +42,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".MenuActivity" />
         <activity android:name=".FriendActivity" />
-        <activity
-            android:name=".ProfileActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".ProfileActivity" />
         <activity android:name=".ChatActivity" />
         <activity android:name=".InviteActivity" />
 

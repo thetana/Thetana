@@ -128,9 +128,9 @@ public class ChatFragment extends Fragment {
 
             if (!roommateList.get(0).profilePicture.equals(""))
                 aq.id(roommateList.get(0).iv).image(roommateList.get(0).profilePicture);
-//            ImageHandler handler = new ImageHandler(roommateList.get(0).iv);
-//            ImageThread thread = new ImageThread(handler, roommateList.get(0).iv);
-//            thread.start();
+            ImageHandler handler = new ImageHandler(roommateList.get(0).iv);
+            ImageThread thread = new ImageThread(handler, roommateList.get(0).iv);
+            thread.start();
 
 
             for (int i = 1; i <= jsonArray.length(); i++) {
@@ -158,9 +158,9 @@ public class ChatFragment extends Fragment {
 
                 if (!roommateList.get(i).profilePicture.equals(""))
                     aq.id(roommateList.get(i).iv).image(roommateList.get(i).profilePicture);
-//                ImageHandler imageHandler = new ImageHandler(roommateList.get(i).iv);
-//                ImageThread imageThread = new ImageThread(imageHandler, roommateList.get(i).iv);
-//                imageThread.start();
+                ImageHandler imageHandler = new ImageHandler(roommateList.get(i).iv);
+                ImageThread imageThread = new ImageThread(imageHandler, roommateList.get(i).iv);
+                imageThread.start();
 
                 roommateList.get(i).viewMap.put(roommateList.get(i).iv, roommateList.get(i).tv);
                 roommateMap.put(object.getString("userId"), roommateList.get(i));
@@ -541,9 +541,9 @@ public class ChatFragment extends Fragment {
                             if (!roommate.profilePicture.equals(""))
                                 aq.id(roommate.iv).image(roommate.profilePicture);
 
-//                            ImageHandler handler = new ImageHandler(roommate.iv);
-//                            ImageThread thread = new ImageThread(handler, roommate.iv);
-//                            thread.start();
+                            ImageHandler handler = new ImageHandler(roommate.iv);
+                            ImageThread thread = new ImageThread(handler, roommate.iv);
+                            thread.start();
 
                             roommate.viewMap.put(roommate.iv, roommate.tv);
                             roommateList.add(roommate);

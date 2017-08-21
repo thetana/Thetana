@@ -5,11 +5,16 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.androidquery.AQuery;
@@ -28,37 +33,39 @@ import org.json.JSONObject;
 public class ProfileActivity extends AppCompatActivity {
     Intent intent;
     TextView tv_statemessage;
-    TextView tv_name;
+    TextView tv_name, tb_title;
     ImageView iv_profile, iv_background;
-    Button bt_chat;
-    ImageButton ib_edit;
+    ImageButton ib_edit, ib_get;
     String id, roomId;
     private SharedPreferences preferences;
     DBHelper dbHelper = new DBHelper(ProfileActivity.this, "thetana.db", null, 1);
     String name = "", stateMessage = "", profilePicture = "", backgroundPhoto = "";
     AQuery aq = new AQuery(this);
-
+    LinearLayout ll_name;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        tv_statemessage = (TextView) findViewById(R.id.profile_tv_statemessage);
-        tv_name = (TextView) findViewById(R.id.profile_tv_name);
-        iv_profile = (ImageView) findViewById(R.id.profile_iv_profile);
-        iv_background = (ImageView) findViewById(R.id.profile_iv_background);
-        bt_chat = (Button) findViewById(R.id.profile_bt_chat);
-        ib_edit = (ImageButton) findViewById(R.id.profile_ib_edit);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayShowCustomEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(false);
+        actionBar.setDisplayShowTitleEnabled(false);
+        actionBar.setDisplayShowHomeEnabled(false);
+        LayoutInflater inflater = (LayoutInflater)getSystemService(LAYOUT_INFLATER_SERVICE);
+        View actionbar = inflater.inflate(R.layout.actionbar_make, null);
+        actionBar.setCustomView(actionbar);
+        //액션바 양쪽 공백 없애기
+        Toolbar parent = (Toolbar)actionbar.getParent();
+        parent.setContentInsetsAbsolute(0,0);
+        actionBar.setElevation(0); // 그림자 없애기
 
-        intent = this.getIntent();
-        if (intent.getStringExtra("gubun").equals("me")) {
-            bt_chat.setVisibility(View.GONE);
-            ib_edit.setVisibility(View.GONE);
-        }
-        id = intent.getStringExtra("id");
-        roomId = intent.getStringExtra("roomId");
+        tb_title = (TextView) actionbar.findViewById(R.id.tb_title);
+        tb_title.setText("프로필");
 
-        bt_chat.setOnClickListener(new View.OnClickListener() {
+        ib_get = (ImageButton) actionbar.findViewById(R.id.ib_get);
+        aq.id(ib_get).image(R.drawable.asset73);
+        ib_get.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ProfileActivity.this, ChatActivity.class);
@@ -70,6 +77,21 @@ public class ProfileActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+        tv_statemessage = (TextView) findViewById(R.id.profile_tv_statemessage);
+        tv_name = (TextView) findViewById(R.id.profile_tv_name);
+        iv_profile = (ImageView) findViewById(R.id.profile_iv_profile);
+        iv_background = (ImageView) findViewById(R.id.profile_iv_background);
+        ib_edit = (ImageButton) findViewById(R.id.profile_ib_edit);
+        intent = this.getIntent();
+        if (intent.getStringExtra("gubun").equals("me")) {
+            ib_get.setVisibility(View.GONE);
+            ib_edit.setVisibility(View.GONE);
+            ll_name = (LinearLayout) findViewById(R.id.ll_name);
+            ll_name.setPadding(0,0,0,0);
+        }
+        id = intent.getStringExtra("id");
+        roomId = intent.getStringExtra("roomId");
+
         ib_edit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -101,8 +123,15 @@ public class ProfileActivity extends AppCompatActivity {
             }
         }
         tv_name.setText(name);
+        tb_title.setText(name);
         tv_statemessage.setText(stateMessage);
-        if (!profilePicture.equals("")) aq.id(iv_profile).image(profilePicture);
+//        if (!profilePicture.equals("")) aq.id(iv_profile).image(profilePicture);
         if (!backgroundPhoto.equals("")) aq.id(iv_background).image(backgroundPhoto);
+
+        ImageView imageView = new ImageView(this);
+        if (!profilePicture.equals("")) aq.id(imageView).image(profilePicture);
+        ImageHandler handler = new ImageHandler(imageView, iv_profile);
+        ImageThread thread = new ImageThread(handler, imageView);
+        thread.start();
     }
 }

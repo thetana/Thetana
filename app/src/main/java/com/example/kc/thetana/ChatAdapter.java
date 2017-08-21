@@ -146,6 +146,13 @@ public class ChatAdapter extends BaseAdapter {
                 tv_dtTm.setVisibility(messages.get(position).visibility);
                 if (!messages.get(position).profile.equals(""))
                     aq.id(iv_profile).image(messages.get(position).profile);
+
+//                ImageView imageView = new ImageView(parent.getContext());
+//                if (!messages.get(position).profile.equals(""))
+//                    aq.id(imageView).image(messages.get(position).profile);
+//                ImageHandler handler = new ImageHandler(imageView, iv_profile);
+//                ImageThread thread = new ImageThread(handler, imageView);
+//                thread.start();
             }
         }
         else if (messages.get(position).gubun.equals("invite") || messages.get(position).gubun.equals("out")) {

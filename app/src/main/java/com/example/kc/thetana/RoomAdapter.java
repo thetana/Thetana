@@ -66,9 +66,6 @@ public class RoomAdapter extends BaseAdapter {
         tv_name.setText(roomItems.get(position).name);
         tv_dtTm.setText(roomItems.get(position).dtTm);
         tv_number.setText(roomItems.get(position).number);
-//        if (!roomItems.get(position).pictrue.equals(""))
-//            aq.id(iv_pictrue).image(roomItems.get(position).pictrue);
-
         if (!roomItems.get(position).pictrue.equals(""))
             aq.id(iv_pictrue).image(roomItems.get(position).pictrue);
 

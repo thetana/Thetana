@@ -12,10 +12,12 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -38,10 +40,11 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 
 public class ModifyMeActivity extends AppCompatActivity {
-    EditText et_name, et_state, et_number, et_id, et_email;
-    Button bt_save;
-    ImageView iv_back;
-    ImageButton ib_profile;
+    EditText et_name, et_state, et_id, et_email;
+    TextView tb_title;
+    ImageButton ib_get;
+    ImageView iv_back, iv_profile;
+    ImageButton ib_profile, ib_back;
     SharedPreferences preferences;
     String background = "", profile = "", backgroundPath = "", profilePath = "";
     Bitmap bitmap;
@@ -53,45 +56,26 @@ public class ModifyMeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_modify_me);
-        et_name = (EditText) findViewById(R.id.modify_m_et_name);
-        et_state = (EditText) findViewById(R.id.modify_m_et_state);
-        et_number = (EditText) findViewById(R.id.modify_m_et_number);
-        bt_save = (Button) findViewById(R.id.modify_m_bt_save);
-        iv_back = (ImageView) findViewById(R.id.modify_m_iv_back);
-        ib_profile = (ImageButton) findViewById(R.id.modify_m_ib_profile);
-        et_id = (EditText) findViewById(R.id.modify_m_et_id);
-        et_email = (EditText) findViewById(R.id.modify_m_et_email);
 
-        preferences = getSharedPreferences("user", 0);
-        profile = preferences.getString("profilePicture", "");
-        background = preferences.getString("backgroundPhoto", "");
-        et_name.setText(preferences.getString("name", ""));
-        et_state.setText(preferences.getString("stateMessage", ""));
-        et_number.setText(preferences.getString("phoneNumber", ""));
-        et_id.setText(preferences.getString("id", ""));
-        et_email.setText(preferences.getString("Email", ""));
-        if(!profile.equals("")) aq.id(ib_profile).image(profile);
-        if(!background.equals("")) aq.id(iv_back).image(background);
 
-        iv_back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Uri uri = MediaStore.Images.Media.INTERNAL_CONTENT_URI;
-                Intent intent = new Intent(Intent.ACTION_PICK, uri);
-                startActivityForResult(intent, BACK);
-            }
-        });
-        ib_profile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Uri uri = MediaStore.Images.Media.INTERNAL_CONTENT_URI;
-                Intent intent = new Intent(Intent.ACTION_PICK, uri);
-                startActivityForResult(intent, PROFILE);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayShowCustomEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(false);
+        actionBar.setDisplayShowTitleEnabled(false);
+        actionBar.setDisplayShowHomeEnabled(false);
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        View actionbar = inflater.inflate(R.layout.actionbar_make, null);
+        actionBar.setCustomView(actionbar);
+        //액션바 양쪽 공백 없애기
+        Toolbar parent = (Toolbar) actionbar.getParent();
+        parent.setContentInsetsAbsolute(0, 0);
+        actionBar.setElevation(0); // 그림자 없애기
 
-            }
-        });
+        tb_title = (TextView) actionbar.findViewById(R.id.tb_title);
+        tb_title.setText("프로필 설정");
 
-        bt_save.setOnClickListener(new View.OnClickListener() {
+        ib_get = (ImageButton) actionbar.findViewById(R.id.ib_get);
+        ib_get.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (TextUtils.isEmpty(et_name.getText().toString())) {
@@ -103,9 +87,9 @@ public class ModifyMeActivity extends AppCompatActivity {
                     StorageReference storageRef = storage.getReferenceFromUrl(getString(R.string.bucket));
                     final StorageReference mountainsRef = storageRef.child(profilePath);
 
-                    bitmap = ((BitmapDrawable) ib_profile.getDrawable()).getBitmap();
+                    bitmap = ((BitmapDrawable) iv_profile.getDrawable()).getBitmap();
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
                     byte[] bytes = baos.toByteArray();
 
                     UploadTask uploadTask = mountainsRef.putBytes(bytes);
@@ -139,7 +123,7 @@ public class ModifyMeActivity extends AppCompatActivity {
 
                     bitmap = ((BitmapDrawable) iv_back.getDrawable()).getBitmap();
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
                     byte[] bytes = baos.toByteArray();
 
                     UploadTask uploadTask = mountainsRef.putBytes(bytes);
@@ -169,6 +153,50 @@ public class ModifyMeActivity extends AppCompatActivity {
                 putData("putMyInfo.php");
             }
         });
+
+
+        et_name = (EditText) findViewById(R.id.modify_m_et_name);
+        et_state = (EditText) findViewById(R.id.modify_m_et_state);
+        iv_back = (ImageView) findViewById(R.id.modify_m_iv_back);
+        ib_back = (ImageButton) findViewById(R.id.modify_m_ib_back);
+        iv_profile = (ImageView) findViewById(R.id.modify_iv_profile);
+        ib_profile = (ImageButton) findViewById(R.id.modify_m_ib_profile);
+        et_id = (EditText) findViewById(R.id.modify_m_et_id);
+        et_email = (EditText) findViewById(R.id.modify_m_et_email);
+
+        preferences = getSharedPreferences("user", 0);
+        profile = preferences.getString("profilePicture", "");
+        background = preferences.getString("backgroundPhoto", "");
+        et_name.setText(preferences.getString("name", ""));
+        et_state.setText(preferences.getString("stateMessage", ""));
+        et_id.setText(preferences.getString("id", ""));
+        et_email.setText(preferences.getString("Email", ""));
+//        if(!profile.equals("")) aq.id(iv_profile).image(profile);
+        if (!background.equals("")) aq.id(iv_back).image(background);
+
+        ImageView imageView = new ImageView(this);
+        if (!profile.equals("")) aq.id(imageView).image(profile);
+        ImageHandler handler = new ImageHandler(imageView, iv_profile);
+        ImageThread thread = new ImageThread(handler, imageView);
+        thread.start();
+
+        ib_back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Uri uri = MediaStore.Images.Media.INTERNAL_CONTENT_URI;
+                Intent intent = new Intent(Intent.ACTION_PICK, uri);
+                startActivityForResult(intent, BACK);
+            }
+        });
+        ib_profile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Uri uri = MediaStore.Images.Media.INTERNAL_CONTENT_URI;
+                Intent intent = new Intent(Intent.ACTION_PICK, uri);
+                startActivityForResult(intent, PROFILE);
+
+            }
+        });
     }
 
     void putData(final String url) {
@@ -176,7 +204,6 @@ public class ModifyMeActivity extends AppCompatActivity {
         final String userId = et_id.getText().toString();
         final String name = et_name.getText().toString();
         final String stateMessage = et_state.getText().toString();
-        final String phoneNumber = et_number.getText().toString();
         class InsertData extends AsyncTask<Object, Object, Void> {
             ProgressDialog loading;
 
@@ -200,7 +227,7 @@ public class ModifyMeActivity extends AppCompatActivity {
                 } else if (url.equals("putMyInfo.php")) {
                     editor.putString("name", name);
                     editor.putString("stateMessage", stateMessage);
-                    editor.putString("phoneNumber", phoneNumber);
+                    editor.putString("phoneNumber", "");
                     editor.commit();
                     finish();
                 }
@@ -214,7 +241,7 @@ public class ModifyMeActivity extends AppCompatActivity {
                     if (url.equals("putMyInfo.php")) {
                         data += "&" + URLEncoder.encode("name", "UTF-8") + "=" + URLEncoder.encode(name, "UTF-8");
                         data += "&" + URLEncoder.encode("stateMessage", "UTF-8") + "=" + URLEncoder.encode(stateMessage, "UTF-8");
-                        data += "&" + URLEncoder.encode("phoneNumber", "UTF-8") + "=" + URLEncoder.encode(phoneNumber, "UTF-8");
+                        data += "&" + URLEncoder.encode("phoneNumber", "UTF-8") + "=" + URLEncoder.encode("", "UTF-8");
                     } else if (url.equals("putBackground.php"))
                         data += "&" + URLEncoder.encode("background", "UTF-8") + "=" + URLEncoder.encode(background, "UTF-8");
                     else if (url.equals("putProfile.php"))
@@ -261,7 +288,7 @@ public class ModifyMeActivity extends AppCompatActivity {
                 imageView = iv_back;
                 backgroundPath = et_id.getText().toString() + "_background.jpg";
             } else if (requestCode == PROFILE) {
-                imageView = ib_profile;
+                imageView = iv_profile;
                 profilePath = et_id.getText().toString() + "_profile.jpg";
             }
 
@@ -271,6 +298,7 @@ public class ModifyMeActivity extends AppCompatActivity {
             cursorPath.moveToFirst();
             String path = cursorPath.getString(column_index_path);
             bitmap = decodeSampledBitmapFromResource(path, imageView.getWidth(), imageView.getHeight());
+            if (imageView == iv_profile) bitmap = new ImageHelper().getRoundedCornerBitmap(bitmap);
             imageView.setImageBitmap(bitmap);
         }
     }

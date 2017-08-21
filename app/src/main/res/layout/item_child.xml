@@ -19,6 +19,7 @@
         android:maxWidth="50dp"
         android:minHeight="50dp"
         android:minWidth="50dp"
+        android:scaleType="fitXY"
         app:srcCompat="@drawable/asset37" />
 
     <TextView
